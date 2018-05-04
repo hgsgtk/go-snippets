@@ -15,11 +15,6 @@ import (
 
 var redirectURL = "http://127.0.0.1:18888"
 
-var Endpoint = oauth2.Endpoint{
-	AuthURL: "https://api.thebase.in/1/oauth/authorize",
-	TokenURL: "https://api.thebase.in/1/oauth/token",
-}
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
