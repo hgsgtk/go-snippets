@@ -78,6 +78,6 @@ go run client.go
 - basic
     - https://github.com/Khigashiguchi/go_snippet/pull/2/commits/c6e862abba408ac5558f4e2e172a06f2e47632dd
 - server require client certification
-
+    - https://github.com/Khigashiguchi/go_snippet/pull/2/commits/1bfe0199827f9169f44b8485cc1690104c1bb0a6
 ## Ref
 - https://www.oreilly.co.jp/books/9784873118048/
