@@ -4,3 +4,6 @@ ca.key
 server.crt
 server.csr
 server.key
+client.crt
+client.csr
+client.key

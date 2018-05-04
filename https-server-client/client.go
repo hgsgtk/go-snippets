@@ -2,28 +2,22 @@ package main
 
 import (
     "crypto/tls"
-    "crypto/x509"
-    "io/ioutil"
     "log"
     "net/http"
     "net/http/httputil"
 )
 
 func main() {
-    cert, err := ioutil.ReadFile("ca.crt")
+    cert, err := tls.LoadX509KeyPair("client.crt", "client.key")
     if err != nil {
         panic(err)
     }
-    certPool := x509.NewCertPool()
-    certPool.AppendCertsFromPEM(cert)
-    tlsConfig := &tls.Config{
-        RootCAs: certPool,
-    }
-    tlsConfig.BuildNameToCertificate()
 
     client := &http.Client{
         Transport: &http.Transport{
-            TLSClientConfig: tlsConfig,
+            TLSClientConfig: &tls.Config{
+                Certificates: []tls.Certificate{cert},
+            },
         },
     }
 
