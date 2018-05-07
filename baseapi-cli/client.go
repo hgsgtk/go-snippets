@@ -12,20 +12,13 @@ import (
 	"io/ioutil"
 	"fmt"
 	"crypto/tls"
+	"net/url"
 )
 
+var apiDomain string
 var redirectURL = "http://127.0.0.1:18888"
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-	apiDomain := os.Getenv("API_DOMAIN")
-	clientID := os.Getenv("CLIENT_ID")
-	clientSecret := os.Getenv("CLIENT_SECRET")
-	state := os.Getenv("STATE")
-
+func getClient(clientID string, clientSecret string, state string) *http.Client {
 	endPoint := oauth2.Endpoint{
 		AuthURL: apiDomain + "/oauth/authorize",
 		TokenURL: apiDomain + "/oauth/token",
@@ -83,84 +76,90 @@ func main() {
 	}
 
 	client := oauth2.NewClient(ctx, conf.TokenSource(ctx, token))
+	return client
+}
 
-
-	// GET users/me
+func getUser(client *http.Client) {
 	resp, err := client.Get(apiDomain + "/users/me")
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	//users, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(users))
+	users, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(users))
+}
 
-	// GET items
-	resp, err = client.Get(apiDomain + "/items")
+func getItems(client *http.Client) {
+	resp, err := client.Get(apiDomain + "/items")
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	//items, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(items))
+	items, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(items))
+}
 
-	// GET items/detail/:item_id
-	// todo: need to pass item_id
-	resp, err = client.Get(apiDomain + "/items/detail/11057201")
+func getItem(client *http.Client, itemId int) {
+	resp, err := client.Get(apiDomain + "/items/detail/" + string(itemId))
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	//item, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(item))
+	item, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(item))
+}
 
-	// POST items/add
-	//values := url.Values{
-	//	"title": {"test item posted by golang api client"},
-	//	"detail": {"test item posted by golang api client"},
-	//	"price": {"300"},
-	//	"stock": {"100"},
-	//	"visible": {"0"},
-	//	"identifier": {"snNDoWbCC1"},
-	//}
-	//resp, err = client.PostForm(apiDomain + "/items/add", values)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(resp.Status)
-	//defer resp.Body.Close()
-	//addItem, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(addItem))
+// ex.
+// values := url.Values{
+//	"title": {"test item posted by golang api client"},
+//	"detail": {"test item posted by golang api client"},
+//	"price": {"300"},
+//	"stock": {"100"},
+//	"visible": {"0"},
+//	"identifier": {"snNDoWbCC1"},
+// }
+func postItem(client *http.Client, values url.Values) {
+	resp, err := client.PostForm(apiDomain + "/items/add", values)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp.Status)
+	defer resp.Body.Close()
+	addItem, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(addItem))
+}
 
-	// POST /items/delete
-	//values = url.Values{
-	//	"item_id": {"11151305"}, // todo: need to pass item_id
-	//}
-	//resp, err = client.PostForm(apiDomain + "/items/delete", values)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(resp.Status)
-	//defer resp.Body.Close()
-	//result, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(result))
+func deleteItem(client *http.Client, itemId int) {
+	values := url.Values{
+		"item_id": {string(itemId)}, // todo: need to pass item_id
+	}
+	resp, err := client.PostForm(apiDomain + "/items/delete", values)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp.Status)
+	defer resp.Body.Close()
+	result, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(result))
+}
 
-	// GET /orders
-	resp, err = client.Get(apiDomain + "/orders")
+func getOrders(client *http.Client) {
+	resp, err := client.Get(apiDomain + "/orders")
 	if err != nil {
 		panic(err)
 	}
@@ -170,28 +169,46 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(string(orders))
+}
 
-	// GET /orders/detail/:unique_key
-	//resp, err = client.Get(apiDomain + "/orders/detail/25EE43F1549E92FB")
-	//	//if err != nil {
-	//	//	panic(err)
-	//	//}
-	//	//defer resp.Body.Close()
-	//	//order, err := ioutil.ReadAll(resp.Body)
-	//	//if err != nil {
-	//	//	panic(err)
-	//	//}
-	//	//fmt.Println(string(order))
-
-	// GET /delivery_companies
-	resp, err = client.Get(apiDomain + "/delivery_companies")
+func getOrder(client *http.Client, uniqueKey string) {
+	resp, err := client.Get(apiDomain + "/orders/detail/" + uniqueKey)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	//deliv, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(deliv))
+	order, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(order))
+}
+
+func getDeliveryCompanies(client *http.Client) {
+	resp, err := client.Get(apiDomain + "/delivery_companies")
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	deliv, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(deliv))
+}
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	apiDomain = os.Getenv("API_DOMAIN")
+	clientID := os.Getenv("CLIENT_ID")
+	clientSecret := os.Getenv("CLIENT_SECRET")
+	state := os.Getenv("STATE")
+
+	// oauth2 authenticated client
+	client := getClient(clientID, clientSecret, state)
+
+	getOrders(client)
 }
