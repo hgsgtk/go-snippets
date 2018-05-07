@@ -13,3 +13,4 @@ BASE https api client
 ## Ref
 - [BASE Developers](https://developers.thebase.in/)
 - [BASE API v1 ドキュメント (β版)](https://github.com/baseinc/api-docs)
+- [self-signed or invalid certificate](https://github.com/golang/oauth2/issues/187)

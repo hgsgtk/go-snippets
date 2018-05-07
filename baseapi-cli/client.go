@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"fmt"
+	"crypto/tls"
 )
 
 var redirectURL = "http://127.0.0.1:18888"
@@ -38,6 +39,14 @@ func main() {
 	}
 	var token *oauth2.Token
 
+	// self-signed invalid certification
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	sslcli := &http.Client{Transport: tr}
+	ctx := context.TODO()
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, sslcli)
+
 	file, err := os.Open("access_token.json")
 	if os.IsNotExist(err) {
 		url := conf.AuthCodeURL(state, oauth2.AccessTypeOnline)
@@ -56,7 +65,7 @@ func main() {
 		}
 		go server.ListenAndServe()
 		open.Start(url)
-		token, err = conf.Exchange(oauth2.NoContext, <-code)
+		token, err = conf.Exchange(ctx, <-code)
 		if err != nil {
 			panic(err)
 		}
@@ -72,7 +81,9 @@ func main() {
 	} else {
 		panic(err)
 	}
-	client := oauth2.NewClient(oauth2.NoContext, conf.TokenSource(oauth2.NoContext, token))
+
+	client := oauth2.NewClient(ctx, conf.TokenSource(ctx, token))
+
 
 	// GET users/me
 	resp, err := client.Get(apiDomain + "/users/me")
@@ -154,23 +165,23 @@ func main() {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	//orders, err := ioutil.ReadAll(resp.Body)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(orders))
+	orders, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(orders))
 
 	// GET /orders/detail/:unique_key
-	resp, err = client.Get(apiDomain + "/orders/detail/25EE43F1549E92FB")
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	order, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(order))
+	//resp, err = client.Get(apiDomain + "/orders/detail/25EE43F1549E92FB")
+	//	//if err != nil {
+	//	//	panic(err)
+	//	//}
+	//	//defer resp.Body.Close()
+	//	//order, err := ioutil.ReadAll(resp.Body)
+	//	//if err != nil {
+	//	//	panic(err)
+	//	//}
+	//	//fmt.Println(string(order))
 
 	// GET /delivery_companies
 	resp, err = client.Get(apiDomain + "/delivery_companies")
