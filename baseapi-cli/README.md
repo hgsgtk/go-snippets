@@ -9,6 +9,7 @@ BASE https api client
 ## Todo
 - 使いやすいCLIとしてのI/F
 - 場面によって期待値を事前に定義してレスポンスボディをアサーションする
+- clientの渡し方多分改善した方がいい
 
 ## Ref
 - [BASE Developers](https://developers.thebase.in/)

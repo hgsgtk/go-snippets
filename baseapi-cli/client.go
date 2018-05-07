@@ -26,7 +26,7 @@ func getClient(clientID string, clientSecret string, state string) *http.Client 
 	conf := &oauth2.Config{
 		ClientID: clientID,
 		ClientSecret: clientSecret,
-		Scopes: []string{"read_users", "read_items", "write_items", "read_orders"},
+		Scopes: []string{"read_users", "read_items", "write_items", "read_orders", "write_orders"},
 		Endpoint: endPoint,
 		RedirectURL: redirectURL,
 	}
@@ -197,6 +197,29 @@ func getDeliveryCompanies(client *http.Client) {
 	fmt.Println(string(deliv))
 }
 
+// e.g
+// values := url.Values{
+// "order_item_id": {"7198"},
+// "status": {"dispatched"},
+// "add_comment": {"お買い上げ頂き誠にありがとうございました。"},
+// "atobarai_status": {"shipping"},
+// "delivery_company_id": {"1"},
+// "tracking_number": {"12345678901234"},
+//}
+func postOrderEditStatus(client *http.Client, values url.Values) {
+	resp, err := client.PostForm(apiDomain + "/orders/edit_status", values)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(resp.Status)
+	defer resp.Body.Close()
+	editedOrder, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(editedOrder))
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -210,5 +233,14 @@ func main() {
 	// oauth2 authenticated client
 	client := getClient(clientID, clientSecret, state)
 
+	fmt.Println("Your orders")
 	getOrders(client)
+	fmt.Println("Your order detail : 0B54B8D681A571A7")
+	getOrder(client, "0B54B8D681A571A7")
+	fmt.Println("Edit your order status")
+	values := url.Values{
+		"order_item_id": {"7198"},
+		"status": {"dispatched"},
+	}
+	postOrderEditStatus(client, values)
 }
