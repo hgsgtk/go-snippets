@@ -5,12 +5,19 @@
 - use negroni as a middleware
 
 ## Getting Started
+- install docker(e.g. Docker for Mac)
 - create auth0 apps
 - set auth0 id to .env
+- build application
+
+```$xslt
+$ make build
+```
+
 - run application
 
 ```$xslt
-$ go run server.go main.go
+$ make run
 ```
 
 - access localhost
