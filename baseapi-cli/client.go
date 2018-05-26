@@ -199,7 +199,7 @@ func getDeliveryCompanies(client *http.Client) {
 
 // e.g
 // values := url.Values{
-// "order_item_id": {"7198"},
+// "order_item_id": {"yours"},
 // "status": {"dispatched"},
 // "add_comment": {"お買い上げ頂き誠にありがとうございました。"},
 // "atobarai_status": {"shipping"},
@@ -235,11 +235,11 @@ func main() {
 
 	fmt.Println("Your orders")
 	getOrders(client)
-	fmt.Println("Your order detail : 0B54B8D681A571A7")
-	getOrder(client, "0B54B8D681A571A7")
+	fmt.Println("Your order detail")
+	getOrder(client, "yours")
 	fmt.Println("Edit your order status")
 	values := url.Values{
-		"order_item_id": {"7198"},
+		"order_item_id": {"yours"},
 		"status": {"dispatched"},
 	}
 	postOrderEditStatus(client, values)
