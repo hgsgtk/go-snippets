@@ -5,6 +5,7 @@ Learning at https://golang.org/doc/articles/wiki/
 
 ## must feature
 - login/logout (authentication)
+    - using gorilla/session
 
 ## todo to make better
 - Store templates in tmpl/ and page data in data/.
@@ -16,3 +17,7 @@ Learning at https://golang.org/doc/articles/wiki/
 ## todo to solve problem
 - don't use regrep
 - replace template engine
+
+## reference
+- https://gist.github.com/mschoebel/9398202
+- https://gist.github.com/alyssaq/75d6678d00572d103106
