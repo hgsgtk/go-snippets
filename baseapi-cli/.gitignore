@@ -1,3 +1,4 @@
 .env
-.idea
+.env.*
+!.env.sample
 access_token.json
