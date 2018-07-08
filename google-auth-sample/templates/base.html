@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sample admin application</title>
+<meta charset="utf-8">
+<meta name="viewpoint" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <div class="navbar-brand">Sample admin application</div>
+        </div>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li><a href="/">TOP</a></li>
+    </ul>
+
+    {{if .AuthEnabled}}
+        {{if .Profile}}
+        <form method="post" action="{{.LogoutURL}}" class="navbar-form navbar-right">
+            <button class="btn btn-default">Log out</button>
+        </form>
+        {{else}}
+        <div class="navbar-text navbar-right">
+            <a href="{{.LoginURL}}">Log in</a>
+        </div>
+        {{end}}
+    {{end}}
+</div>
+<div class="container">
+    {{template "body" .Data}}
+</div>
+</html>
