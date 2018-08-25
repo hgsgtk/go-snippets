@@ -2,18 +2,18 @@ package home
 
 import (
 	templates ".."
-	"net/http"
 	"html/template"
+	"net/http"
 	"os"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
-		Auth0ClientId string
+		Auth0ClientId     string
 		Auth0ClientSecret string
-		Auth0Domain string
-		Auth0CallbackURL template.URL
+		Auth0Domain       string
+		Auth0CallbackURL  template.URL
 	}{
 		os.Getenv("AUTH0_CLIENT_ID"),
 		os.Getenv("AUTH0_CLIENT_SECRET"),

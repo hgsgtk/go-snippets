@@ -1,18 +1,18 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/skratchdot/open-golang/open"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
-	"os"
-	"net/http"
 	"io"
-	"context"
-	"github.com/skratchdot/open-golang/open"
-	"encoding/json"
 	"io/ioutil"
-	"fmt"
+	"net/http"
+	"os"
 	"strings"
-	"github.com/joho/godotenv"
 )
 
 var redirectURL = "http://localhost:18888"
@@ -27,10 +27,10 @@ func main() {
 	state := os.Getenv("STATE")
 
 	conf := &oauth2.Config{
-		ClientID: clientID,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes: []string{"user:email", "gist"},
-		Endpoint: github.Endpoint,
+		Scopes:       []string{"user:email", "gist"},
+		Endpoint:     github.Endpoint,
 	}
 	var token *oauth2.Token
 
@@ -48,9 +48,9 @@ func main() {
 				w.(http.Flusher).Flush()
 				code <- r.URL.Query().Get("code")
 				server.Shutdown(context.Background())
-				}),
-			}
-			go server.ListenAndServe()
+			}),
+		}
+		go server.ListenAndServe()
 		open.Start(url)
 		token, err = conf.Exchange(oauth2.NoContext, <-code)
 		if err != nil {

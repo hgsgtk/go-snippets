@@ -1,18 +1,18 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	"os"
-	"golang.org/x/oauth2"
-	"net/http"
-	"io"
 	"context"
-	"github.com/skratchdot/open-golang/open"
-	"encoding/json"
-	"io/ioutil"
-	"fmt"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/skratchdot/open-golang/open"
+	"golang.org/x/oauth2"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"net/url"
+	"os"
 )
 
 var apiDomain string
@@ -20,15 +20,15 @@ var redirectURL = "http://127.0.0.1:18888"
 
 func getClient(clientID string, clientSecret string, state string) *http.Client {
 	endPoint := oauth2.Endpoint{
-		AuthURL: apiDomain + "/oauth/authorize",
+		AuthURL:  apiDomain + "/oauth/authorize",
 		TokenURL: apiDomain + "/oauth/token",
 	}
 	conf := &oauth2.Config{
-		ClientID: clientID,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes: []string{"read_users", "read_items", "write_items", "read_orders", "write_orders"},
-		Endpoint: endPoint,
-		RedirectURL: redirectURL,
+		Scopes:       []string{"read_users", "read_items", "write_items", "read_orders", "write_orders"},
+		Endpoint:     endPoint,
+		RedirectURL:  redirectURL,
 	}
 	var token *oauth2.Token
 
@@ -128,7 +128,7 @@ func getItem(client *http.Client, itemId int) {
 //	"identifier": {"snNDoWbCC1"},
 // }
 func postItem(client *http.Client, values url.Values) {
-	resp, err := client.PostForm(apiDomain + "/items/add", values)
+	resp, err := client.PostForm(apiDomain+"/items/add", values)
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +145,7 @@ func deleteItem(client *http.Client, itemId int) {
 	values := url.Values{
 		"item_id": {string(itemId)}, // todo: need to pass item_id
 	}
-	resp, err := client.PostForm(apiDomain + "/items/delete", values)
+	resp, err := client.PostForm(apiDomain+"/items/delete", values)
 	if err != nil {
 		panic(err)
 	}
@@ -207,7 +207,7 @@ func getDeliveryCompanies(client *http.Client) {
 // "tracking_number": {"12345678901234"},
 //}
 func postOrderEditStatus(client *http.Client, values url.Values) {
-	resp, err := client.PostForm(apiDomain + "/orders/edit_status", values)
+	resp, err := client.PostForm(apiDomain+"/orders/edit_status", values)
 	if err != nil {
 		panic(err)
 	}
@@ -240,7 +240,7 @@ func main() {
 	fmt.Println("Edit your order status")
 	values := url.Values{
 		"order_item_id": {"yours"},
-		"status": {"dispatched"},
+		"status":        {"dispatched"},
 	}
 	postOrderEditStatus(client, values)
 }

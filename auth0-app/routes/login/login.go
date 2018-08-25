@@ -1,12 +1,12 @@
 package login
 
 import (
-	"net/http"
-	"os"
-	"golang.org/x/oauth2"
+	"../../app"
 	"crypto/rand"
 	"encoding/base64"
-	"../../app"
+	"golang.org/x/oauth2"
+	"net/http"
+	"os"
 )
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,12 +15,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	aud := os.Getenv("AUTH0_AUDIENCE")
 
 	conf := &oauth2.Config{
-		ClientID: os.Getenv("AUTH0_CLIENT_ID"),
+		ClientID:     os.Getenv("AUTH0_CLIENT_ID"),
 		ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
-		RedirectURL: os.Getenv("AUTH0_CALLBACK_URL"),
-		Scopes: []string{"openid", "profile"},
+		RedirectURL:  os.Getenv("AUTH0_CALLBACK_URL"),
+		Scopes:       []string{"openid", "profile"},
 		Endpoint: oauth2.Endpoint{
-			AuthURL: "https://" + domain + "/authorize",
+			AuthURL:  "https://" + domain + "/authorize",
 			TokenURL: "https://" + domain + "/oauth/token",
 		},
 	}

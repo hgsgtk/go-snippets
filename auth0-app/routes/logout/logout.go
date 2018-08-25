@@ -2,8 +2,8 @@ package logout
 
 import (
 	"net/http"
-	"os"
 	"net/url"
+	"os"
 )
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/gorilla/sessions"
 	"encoding/gob"
+	"github.com/gorilla/sessions"
 )
 
 var (

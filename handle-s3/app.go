@@ -1,20 +1,20 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
-	"os"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/joho/godotenv"
+	"os"
 )
 
 type S3Config struct {
-	AccessKeyId string
+	AccessKeyId     string
 	SecretAccessKey string
-	Region string
-	BucketName string
+	Region          string
+	BucketName      string
 }
 
 func main() {
@@ -24,10 +24,10 @@ func main() {
 	}
 
 	sc := S3Config{
-		AccessKeyId: os.Getenv("ACCESS_KEY_ID"),
+		AccessKeyId:     os.Getenv("ACCESS_KEY_ID"),
 		SecretAccessKey: os.Getenv("SECRET_ACCESS_KEY"),
-		Region: os.Getenv("REGION"),
-		BucketName: os.Getenv("BUCKET_NAME"),
+		Region:          os.Getenv("REGION"),
+		BucketName:      os.Getenv("BUCKET_NAME"),
 	}
 
 	sc.UploadFile("./sample.svg")
@@ -35,7 +35,7 @@ func main() {
 
 func (sc *S3Config) UploadFile(filepath string) {
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(sc.Region),
+		Region:      aws.String(sc.Region),
 		Credentials: credentials.NewStaticCredentials(sc.AccessKeyId, sc.SecretAccessKey, ""),
 	}))
 	uploader := s3manager.NewUploader(sess)
@@ -48,8 +48,8 @@ func (sc *S3Config) UploadFile(filepath string) {
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(sc.BucketName),
-		Key: aws.String("sample/sample.svg"),
-		Body: f,
+		Key:    aws.String("sample/sample.svg"),
+		Body:   f,
 	})
 	if err != nil {
 		panic(err)

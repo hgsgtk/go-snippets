@@ -1,16 +1,16 @@
 package main
 
 import (
-	"./routes/home"
 	"./routes/callback"
+	"./routes/home"
 	"./routes/login"
 	"./routes/logout"
-	"./routes/user"
 	"./routes/middlewares"
-	"github.com/gorilla/mux"
+	"./routes/user"
 	"github.com/codegangsta/negroni"
-	"net/http"
+	"github.com/gorilla/mux"
 	"log"
+	"net/http"
 )
 
 func StartServer() {

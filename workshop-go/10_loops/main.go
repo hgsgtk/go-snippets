@@ -1,54 +1,54 @@
 package main
 
 import (
-    "fmt"
-    "time"
+	"fmt"
+	"time"
 )
 
 type Computer struct {
-    Brand string
-    Model string
-    Price int
+	Brand string
+	Model string
+	Price int
 }
 
 func (c *Computer) Describe() {
-    fmt.Printf("%s %s $%d\n", c.Brand, c.Model, c.Price)
+	fmt.Printf("%s %s $%d\n", c.Brand, c.Model, c.Price)
 }
 
 func (c *Computer) StartTimer(channel chan string, t time.Duration) {
-    fmt.Println("Starting timer...")
-    time.Sleep(t)
-    channel <- "Time up!"
+	fmt.Println("Starting timer...")
+	time.Sleep(t)
+	channel <- "Time up!"
 }
 
 func (c *Computer) StartInterval(channel chan string, t time.Duration) {
-    fmt.Println("Starting interval...")
+	fmt.Println("Starting interval...")
 
-    for i := 0; i < 10; i++ {
-        time.Sleep(t)
-        channel <- fmt.Sprintf("Interval %d up!", i)
-    }
+	for i := 0; i < 10; i++ {
+		time.Sleep(t)
+		channel <- fmt.Sprintf("Interval %d up!", i)
+	}
 
-    close(channel)
+	close(channel)
 }
 
 func main() {
-    computer := Computer{
-        Brand: "Apple",
-        Model: "Macbook",
-        Price: 1000,
-    }
+	computer := Computer{
+		Brand: "Apple",
+		Model: "Macbook",
+		Price: 1000,
+	}
 
-    channel := make(chan string)
+	channel := make(chan string)
 
-    t := 1 * time.Second
-    go computer.StartInterval(channel, t)
+	t := 1 * time.Second
+	go computer.StartInterval(channel, t)
 
-    computer.Describe()
+	computer.Describe()
 
-    for msg := range channel {
-        fmt.Println(msg)
-    }
+	for msg := range channel {
+		fmt.Println(msg)
+	}
 
-    fmt.Println("Exited")
+	fmt.Println("Exited")
 }

@@ -1,32 +1,32 @@
 package main
 
 import (
-	"github.com/nlopes/slack"
-	"github.com/joho/godotenv"
-	"os"
-	"fmt"
-	"net/url"
-	"net/http"
 	"encoding/json"
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/nlopes/slack"
+	"net/http"
+	"net/url"
+	"os"
 )
 
 var YAHOO_API string = "https://map.yahooapis.jp/weather/V1/place"
 
 type Sample struct {
 	Name string
-	Age int
+	Age  int
 }
 
 type Samples []Sample
 
 func main() {
-	dog := Sample {
+	dog := Sample{
 		Name: "わんわん",
-		Age: 3,
+		Age:  3,
 	}
-	cat := Sample {
+	cat := Sample{
 		Name: "にゃんにゃん",
-		Age: 8,
+		Age:  8,
 	}
 	var animals Samples
 
@@ -64,7 +64,7 @@ func main() {
 	params := slack.PostMessageParameters{}
 	attachment := slack.Attachment{
 		Pretext: "test pretext",
-		Text: "test text",
+		Text:    "test text",
 	}
 	params.Attachments = []slack.Attachment{attachment}
 	channelID, timestamp, err := api.PostMessage(channel, "first post", params)

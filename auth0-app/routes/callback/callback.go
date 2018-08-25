@@ -1,34 +1,34 @@
 package callback
 
 import (
-    "context"
-    _ "crypto/sha512"
-    "encoding/json"
-    "../../app"
-    "golang.org/x/oauth2"
-    "net/http"
-    "os"
+	"../../app"
+	"context"
+	_ "crypto/sha512"
+	"encoding/json"
+	"golang.org/x/oauth2"
+	"net/http"
+	"os"
 )
 
 func CallbackHandler(w http.ResponseWriter, r *http.Request) {
-    
-    domain := os.Getenv("AUTH0_DOMAIN")
 
-    conf := &oauth2.Config{
-        ClientID: os.Getenv("AUTH0_CLIENT_ID"),
-        ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
-        RedirectURL: os.Getenv("AUTH0_CALLBACK_URL"),
-        Scopes: []string{"openid", "profile"},
-        Endpoint: oauth2.Endpoint{
-        	AuthURL: "https://" + domain + "/authorize",
-        	TokenURL: "https://" + domain + "/oauth/token",
+	domain := os.Getenv("AUTH0_DOMAIN")
+
+	conf := &oauth2.Config{
+		ClientID:     os.Getenv("AUTH0_CLIENT_ID"),
+		ClientSecret: os.Getenv("AUTH0_CLIENT_SECRET"),
+		RedirectURL:  os.Getenv("AUTH0_CALLBACK_URL"),
+		Scopes:       []string{"openid", "profile"},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://" + domain + "/authorize",
+			TokenURL: "https://" + domain + "/oauth/token",
 		},
-    }
-    state := r.URL.Query().Get("state")
-    session, err := app.Store.Get(r, "state")
-    if err != nil {
-    	http.Error(w, err.Error(), http.StatusInternalServerError)
-    	return
+	}
+	state := r.URL.Query().Get("state")
+	session, err := app.Store.Get(r, "state")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	if state != session.Values["state"] {

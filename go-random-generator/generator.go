@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"./rand"
+	"fmt"
 )
 
 func main() {
