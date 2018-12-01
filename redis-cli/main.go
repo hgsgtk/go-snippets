@@ -8,28 +8,22 @@ import (
 	"reflect"
 
 	"github.com/go-redis/redis"
+	"github.com/higasgt/go-snippets/redis-cli/persistence/kvs"
 )
 
 func main() {
-	client := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
-	defer client.Close()
-
-	pong, err := client.Ping().Result()
+	client, err := kvs.New("localhost:6379")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	fmt.Fprintln(os.Stdout, pong)
+	defer client.Close()
 
-	if err := client.Set("key1", "value1", time.Second*3).Err(); err != nil {
+	if err := kvs.SetToken(client, "key1", 1, time.Second*3); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	val1, err := client.Get("key1").Result()
+	id, err := kvs.GetIDByToken(client, "key1")
 	if err == redis.Nil {
 		fmt.Fprintln(os.Stderr, "no value")
 		return
@@ -37,7 +31,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-	fmt.Fprintln(os.Stdout, val1)
+	fmt.Fprintln(os.Stdout, id)
 
 	if exists, err := client.Exists("key1").Result(); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -51,16 +45,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return
 	}
-
-	// reget
-	val1, err = client.Get("key1").Result()
-	if err == redis.Nil {
-		fmt.Fprintln(os.Stderr, "no value")
-		return
-	} else if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
-	fmt.Fprintln(os.Stdout, val1)
 
 	// set hash
 	res, err := client.HSet("hkey1", "user_id", 1).Result()

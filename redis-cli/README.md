@@ -5,7 +5,9 @@ redis connection implementing and testing with go
 ## go
 - https://github.com/go-redis/redis
 - https://github.com/gomodule/redigo
-- 
+- https://github.com/go-redis/redis/issues/332
+- https://github.com/alicebob/miniredis
+- https://github.com/rafaeljusto/redigomock
 
 ## vgo
 - https://github.com/golang/go/wiki/Modules#how-to-prepare-for-a-release
