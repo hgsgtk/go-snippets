@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-redis/redis"
 	"github.com/higasgt/go-snippets/redis-cli/persistence/kvs"
 )
 
@@ -21,7 +20,7 @@ func main() {
 		return
 	}
 	id, err := kvs.GetIDByToken(client, "key1")
-	if err == redis.Nil {
+	if err == kvs.Nil {
 		fmt.Fprintln(os.Stderr, "no value")
 		return
 	} else if err != nil {
