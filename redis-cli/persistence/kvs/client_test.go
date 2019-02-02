@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/higasgt/go-snippets/redis-cli/persistence/kvs"
-	"github.com/higasgt/go-snippets/redis-cli/testhelper"
+	"github.com/hgsgtk/go-snippets/redis-cli/persistence/kvs"
+	"github.com/hgsgtk/go-snippets/redis-cli/testhelper"
 )
 
 func TestSetToken(t *testing.T) {

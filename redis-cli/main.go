@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/higasgt/go-snippets/redis-cli/persistence/kvs"
+	"github.com/hgsgtk/go-snippets/redis-cli/persistence/kvs"
 )
 
 func main() {
