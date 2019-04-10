@@ -6,32 +6,71 @@ import (
 	"github.com/hgsgtk/go-snippets/testing-codes/fizzbuzz"
 )
 
-func TestGetMsg(t *testing.T) {
-	tests := map[string]struct {
-		num      int
-		expected string
+func TestGetMsgTableDriven(t *testing.T) {
+	tests := []struct {
+		num  int
+		want string
 	}{
-		"15で割り切れる場合FizzBuzz": {
-			num:      45,
-			expected: "FizzBuzz",
+		{
+			num:  15,
+			want: "FizzBuzz",
 		},
-		"5で割り切れる場合Buzz": {
-			num:      40,
-			expected: "Buzz",
+		{
+			num:  5,
+			want: "Buzz",
 		},
-		"3で割り切れる場合Buzz": {
-			num:      39,
-			expected: "Fizz",
+		{
+			num:  3,
+			want: "Fizz",
 		},
-		"15,5,3で割り切れない場合そのまま": {
-			num:      37,
-			expected: "37",
+		{
+			num:  1,
+			want: "1",
 		},
 	}
-	for name, tt := range tests {
-		t.Run(name, func(t *testing.T) {
-			if actual := fizzbuzz.GetMsg(tt.num); tt.expected != actual {
-				t.Errorf("Run is expected '%s', but got '%s'", tt.expected, actual)
+	for _, tt := range tests {
+		if got := fizzbuzz.GetMsg(tt.num); got != tt.want {
+			t.Errorf("GetMsg(%d) = %s, want %s", tt.num, got, tt.want)
+		}
+	}
+}
+
+func TestGetMsgSubTest(t *testing.T) {
+	tests := []struct {
+		desc string
+		num  int
+		want string
+	}{
+		{
+			desc: "divisible by 15",
+			num:  15,
+			want: "FizzBuzz",
+		},
+		{
+			desc: "divisible by 5",
+			num:  5,
+			want: "Buzz",
+		},
+		{
+			desc: "divisible by 3",
+			num:  3,
+			want: "Fizz",
+		},
+		{
+			desc: "not divisible",
+			num:  1,
+			want: "1",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			if got := fizzbuzz.GetMsg(tt.num); got != tt.want {
+				t.Errorf(
+					"GetMsg(%d) = %s, want %s",
+					tt.num, got,
+					tt.want,
+				)
 			}
 		})
 	}
@@ -43,25 +82,25 @@ func TestGetMsg2(t *testing.T) {
 
 	num = 15
 	want = "FizzBuzz"
-	if got := fizzbuzz.GetMsg(num); want != got {
-		t.Fatalf("GetMsg(%d) = %s, want %s", num, want, got)
+	if got := fizzbuzz.GetMsg(num); got != want {
+		t.Fatalf("GetMsg(%d) = %s, want %s", num, got, want)
 	}
 
 	num = 5
 	want = "Buzz"
-	if got := fizzbuzz.GetMsg(num); want != got {
-		t.Fatalf("GetMsg(%d) = %s, want %s", num, want, got)
+	if got := fizzbuzz.GetMsg(num); got != want {
+		t.Fatalf("GetMsg(%d) = %s, want %s", num, got, want)
 	}
 
 	num = 3
 	want = "Fizz"
-	if got := fizzbuzz.GetMsg(num); want != got {
-		t.Fatalf("GetMsg(%d) = %s, want %s", num, want, got)
+	if got := fizzbuzz.GetMsg(num); got != want {
+		t.Fatalf("GetMsg(%d) = %s, want %s", num, got, want)
 	}
 
 	num = 1
 	want = "1"
-	if got := fizzbuzz.GetMsg(num); want != got {
-		t.Fatalf("GetMsg(%d) = %s, want %s", num, want, got)
+	if got := fizzbuzz.GetMsg(num); got != want {
+		t.Fatalf("GetMsg(%d) = %s, want %s", num, got, want)
 	}
 }

@@ -1,8 +1,12 @@
 package sample_test
 
 import (
+	"io/ioutil"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/hgsgtk/go-snippets/testing-codes/testutil"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hgsgtk/go-snippets/testing-codes/sample"
@@ -32,16 +36,52 @@ func TestGetNum(t *testing.T) {
 	}
 }
 
-func TestGetTomorrowUsingCmp(t *testing.T) {
-	jst, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		t.Fatalf("Failed to load JST time Location")
-	}
-	tm := time.Date(2019, time.April, 14, 0, 0, 0, 0, jst)
+func TestInStatusListWorse(t *testing.T) {
+	var x string
+	var want bool
 
-	want := tm.AddDate(0, 0, 1)
+	x = "deleted" // 実は deleted というステータスもあった
+	want = true
+	if got := sample.InStatusList(x); got != want {
+		t.Errorf("unexpected value %t", got)
+	}
+}
+
+func TestInStatusListBetter(t *testing.T) {
+	var x string
+	var want bool
+
+	x = "deleted"
+	want = true
+	if got := sample.InStatusList(x); got != want {
+		t.Errorf("InStatusList(%s) = %t, want %t", x, got, want)
+	}
+}
+
+func TestGetTomorrowUsingCmp(t *testing.T) {
+	tm := time.Date(2019, time.April, 14, 0, 0, 0, 0, testutil.GetJstLocation(t))
+
+	want := tm.AddDate(0, 0, 3)
 	got := sample.GetTomorrow(tm)
 	if diff := cmp.Diff(got, want); diff != "" {
-		t.Errorf("GetTomorrow() differs: (-want +got)\n%s", diff)
+		t.Errorf("GetTomorrow() differs: (-got +want)\n%s", diff)
+	}
+}
+
+func TestOkHandler(t *testing.T) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/sample", nil)
+
+	sample.OkHandler(w, r)
+	res := w.Result()
+	defer res.Body.Close()
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		t.Fatalf("ioutil.ReadAll() caused unexpected error '%#v'", err)
+	}
+	const expected = "{\"status\":\"OK\"}\n"
+	if got := string(b); got != expected {
+		t.Errorf("OkHandler response = '%#v', want '%#v'", got, expected)
 	}
 }
