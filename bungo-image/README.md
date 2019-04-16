@@ -43,3 +43,6 @@ func init() {
 	image.RegisterFormat("png", pngHeader, Decode, DecodeConfig)
 }
 ```
+
+## 線形補間法（lerp）
+計算量が非常に少ないことが特徴のコンピュータグラフィックスを含む多くの分野で使われている補間
