@@ -12,3 +12,4 @@
 
 ## refs
 - https://qiita.com/nirasan/items/d9399394b57a72e6a90f
+- https://techblog.haroid.io/go-generate/
