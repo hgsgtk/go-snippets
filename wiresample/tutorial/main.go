@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
 
 // simple initializer that always returns a hard-coded message
 func NewMessage() Message {
@@ -11,19 +15,31 @@ type Message string
 
 // an initializer for Greeter as well
 func NewGreeter(m Message) Greeter {
-	return Greeter{Message: m}
+	var grumpy bool
+	if time.Now().Unix()%2 == 0 {
+		grumpy = true
+	}
+	return Greeter{Message: m, Grumpy: grumpy}
 }
 
 type Greeter struct {
 	Message Message
+	Grumpy  bool
 }
 
 func (g Greeter) Greet() Message {
+	if g.Grumpy {
+		return Message("Go away!")
+	}
 	return g.Message
 }
 
-func NewEvent(g Greeter) Event {
-	return Event{Greeter: g}
+// add to return error
+func NewEvent(g Greeter) (Event, error) {
+	if g.Grumpy {
+		return Event{}, errors.New("could not create event: event greeter is grumpy")
+	}
+	return Event{Greeter: g}, nil
 }
 
 type Event struct {
@@ -44,7 +60,9 @@ func main() {
 	//
 	//event.Start()
 
-	e := InitializeEvent()
-
+	e, err := InitializeEvent()
+	if err != nil {
+		fmt.Printf("failed to create event: %s\n", err)
+	}
 	e.Start()
 }
