@@ -38,9 +38,13 @@ func (e Event) Start() {
 func main() {
 	// using the dependency injection design principle.
 	// downside to dependency injection is the need for so many initialization steps.
-	message := NewMessage()
-	greeter := NewGreeter(message)
-	event := NewEvent(greeter)
+	//message := NewMessage()
+	//greeter := NewGreeter(message)
+	//event := NewEvent(greeter)
+	//
+	//event.Start()
 
-	event.Start()
+	e := InitializeEvent()
+
+	e.Start()
 }
