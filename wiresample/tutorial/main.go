@@ -7,8 +7,8 @@ import (
 )
 
 // simple initializer that always returns a hard-coded message
-func NewMessage() Message {
-	return Message("Hi there!")
+func NewMessage(phrase string) Message {
+	return Message(phrase)
 }
 
 type Message string
@@ -60,7 +60,7 @@ func main() {
 	//
 	//event.Start()
 
-	e, err := InitializeEvent()
+	e, err := InitializeEvent("hello")
 	if err != nil {
 		fmt.Printf("failed to create event: %s\n", err)
 	}
