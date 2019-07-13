@@ -10,7 +10,10 @@ import (
 )
 
 // AssertResponse assert response header and body.
-func AssertResponse(t *testing.T, testTarget string, gotRes *http.Response, wantCode int, bodyFile string) {
+func AssertResponse(
+	t *testing.T, testTarget string,
+	gotRes *http.Response,
+	wantCode int, bodyFile string) {
 	t.Helper()
 
 	AssertResponseHeader(t, testTarget, gotRes, wantCode)
@@ -18,7 +21,10 @@ func AssertResponse(t *testing.T, testTarget string, gotRes *http.Response, want
 }
 
 // AssertResponseHeader assert response header.
-func AssertResponseHeader(t *testing.T, testTarget string, gotRes *http.Response, wantCode int) {
+func AssertResponseHeader(
+	t *testing.T, testTarget string,
+	gotRes *http.Response,
+	wantCode int) {
 	t.Helper()
 
 	// Check status code
@@ -33,7 +39,10 @@ func AssertResponseHeader(t *testing.T, testTarget string, gotRes *http.Response
 }
 
 // AssertResponseBodyWithFile assert response body with test file.
-func AssertResponseBodyWithFile(t *testing.T, testTarget string, gotRes *http.Response, bodyFile string) {
+func AssertResponseBodyWithFile(
+	t *testing.T, testTarget string,
+	gotRes *http.Response,
+	bodyFile string) {
 	t.Helper()
 
 	rs := getStringFromTestFile(t, bodyFile)

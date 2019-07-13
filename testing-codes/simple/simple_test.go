@@ -1,14 +1,15 @@
 package simple_test
 
 import (
+	"github.com/hgsgtk/go-snippets/testing-codes/testutil"
 	"io/ioutil"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hgsgtk/go-snippets/testing-codes/simple"
-	"github.com/hgsgtk/go-snippets/testing-codes/testutil"
 )
 
 func TestName(t *testing.T) {
@@ -117,12 +118,8 @@ func TestOkHandler(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatalf("ioutil.ReadAll() caused unexpected error '%#v'", err)
-	}
-	want := "{\"status\":\"OK\"}\n"
-	if got := string(b); got != want {
-		t.Errorf("OkHandler response = '%#v', want '%#v'", got, want)
-	}
+	// Check http response
+	wantCode := http.StatusOK
+	wantBody := "./testdata/okhandler.json.golden"
+	testutil.AssertRespoonse(t, "OkHandler", res, wantCode, wantBody)
 }
