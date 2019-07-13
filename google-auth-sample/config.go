@@ -16,7 +16,7 @@ var (
 
 func init() {
 	// auth
-	OAuthConfig = configureOAuthClient("your-sample", "your-sample")
+	OAuthConfig = configureOAuthClient("your-simple", "your-simple")
 
 	// sessions
 	// secure key

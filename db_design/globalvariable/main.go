@@ -11,7 +11,7 @@ import (
 
 func init() {
 	var err error
-	err = models.InitDB("sqlite3", "./sample.sqlite3")
+	err = models.InitDB("sqlite3", "./simple.sqlite3")
 	if err != nil {
 		log.Fatal(err)
 	}

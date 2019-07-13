@@ -30,7 +30,7 @@ func main() {
 		BucketName:      os.Getenv("BUCKET_NAME"),
 	}
 
-	sc.UploadFile("./sample.svg")
+	sc.UploadFile("./simple.svg")
 }
 
 func (sc *S3Config) UploadFile(filepath string) {
@@ -48,7 +48,7 @@ func (sc *S3Config) UploadFile(filepath string) {
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(sc.BucketName),
-		Key:    aws.String("sample/sample.svg"),
+		Key:    aws.String("simple/simple.svg"),
 		Body:   f,
 	})
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fst := token.NewFileSet()
-	f, err := parser.ParseFile(fst, "sample.go", nil, 0)
+	f, err := parser.ParseFile(fst, "simple.go", nil, 0)
 	if err != nil {
 		log.Fatal("Error:", err)
 	}

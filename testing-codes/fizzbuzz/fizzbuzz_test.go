@@ -64,13 +64,8 @@ func TestGetMsgSubTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			t.Parallel()
 			if got := fizzbuzz.GetMsg(tt.num); got != tt.want {
-				t.Errorf(
-					"GetMsg(%d) = %s, want %s",
-					tt.num, got,
-					tt.want,
-				)
+				t.Errorf("GetMsg(%d) = %s, want %s", tt.num, got, tt.want)
 			}
 		})
 	}

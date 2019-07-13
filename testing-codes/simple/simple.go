@@ -1,4 +1,4 @@
-package sample
+package simple
 
 import (
 	"encoding/json"
@@ -28,7 +28,7 @@ func InStatusList(x string) bool {
 			return true
 		}
 	}
-	return false
+	return true
 }
 
 func GetTomorrow(tm time.Time) time.Time {

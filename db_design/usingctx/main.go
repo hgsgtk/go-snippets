@@ -21,7 +21,7 @@ func (ci *ContextInjector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db, err := models.NewDB("sqlite3", "./sample.sqlite3")
+	db, err := models.NewDB("sqlite3", "./simple.sqlite3")
 	if err != nil {
 		log.Panic(err)
 	}

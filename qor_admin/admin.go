@@ -15,7 +15,7 @@ type User struct {
 	Name string
 }
 
-// Product is sample model like as User
+// Product is simple model like as User
 type Product struct {
 	gorm.Model
 	Name        string
