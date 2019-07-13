@@ -2,7 +2,6 @@ package simple_test
 
 import (
 	"github.com/hgsgtk/go-snippets/testing-codes/testutil"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
