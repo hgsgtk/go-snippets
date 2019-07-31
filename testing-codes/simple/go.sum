@@ -1,0 +1,6 @@
+github.com/google/go-cmp v0.3.0 h1:crn/baboCvb5fXaQ0IJ1SGTsTVrWpDsCWC8EGETZijY=
+github.com/google/go-cmp v0.3.0/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
+github.com/hgsgtk/go-snippets v0.0.0-20190713015333-6bfe2964f607 h1:eMoLUCj3yS/F0u4bz2MBNuoBC85u6Mj5x27DR4PQU1Q=
+github.com/hgsgtk/go-snippets v0.0.0-20190713015333-6bfe2964f607/go.mod h1:JiPIoNGRYes5KdlMOqoe3ARSCpEPc5QVuAiyuaMMv14=
+github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
+github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

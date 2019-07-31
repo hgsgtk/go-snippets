@@ -16,9 +16,9 @@ func TestTripService_Run_CustomerBan(t *testing.T) {
 
 	argCode := "customer_01"
 	mockCustomer.EXPECT().GetByCode(argCode).
-		Times(1).Return(mockexample.Customer{ID: 1}, nil)
+		AnyTimes().Return(mockexample.Customer{ID: 1}, nil)
 	mockTrip.EXPECT().GetByCustomerID(1, "reserved").
-		Times(1).Return(mockexample.Trip{}, nil)
+		AnyTimes().Return(mockexample.Trip{}, nil)
 
 	s := mockexample.TripService{Customer: mockCustomer, Trip: mockTrip}
 
