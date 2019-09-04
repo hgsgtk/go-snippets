@@ -84,3 +84,34 @@ Usage of /var/folders/lg/rdr0tvnd6kzblb0y1xmpvvx00000gn/T/go-build919209028/b001
         にゃーんと言ってほしい回数 (default 1)
 exit status 2
 ```
+
+## 標準入力を受け取る
+次は標準入力を受け取るパターンをやってみましょう。標準入力を受け取るとパイプで受け取ってなにかすることができますね
+
+## コマンドを実行する
+`echo`など、osコマンドを実行できたらシェルスクリプトの代わりにもなりそうですね、チョット複雑であればGoのほうが良いかもしれませんね。
+
+osコマンドを実行するには、 `os/exec` パッケージを使います。
+
+https://golang.org/pkg/os/exec/
+
+簡単なもので、 `echo Hello` をGoから実行してみましょう。
+
+```go
+package main
+
+import (
+	"fmt"
+	"os/exec"
+)
+
+func main() {
+	cmd := exec.Command("echo", "Hello")
+	output, err := cmd.Output()
+	if err != nil {
+		panic(err) // 稼働中の本番サービスなどではpanicしない
+	}
+	fmt.Print(string(output))
+}
+```
+
