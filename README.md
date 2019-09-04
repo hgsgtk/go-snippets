@@ -1,2 +1,2 @@
 # go-snippets
-snippet code written in golang.
+snippet code written in Go.
