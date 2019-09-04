@@ -89,6 +89,7 @@ exit status 2
 次は標準入力を受け取るパターンをやってみましょう。標準入力を受け取るとパイプで受け取ってなにかすることができますね
 
 `os` パッケージの`os.Stdin`から標準入力を受け取ることができます。
+`bufio`パッケージの`bufio.Scanner`を使用することで一行ずつ読み取っていくことができます。
 
 ```go
 package main
@@ -143,3 +144,97 @@ func main() {
 }
 ```
 
+## ファイルを扱う
+ファイルを読み書きしてみましょう。まずは、 `hoge.txt` ファイルがあるとして、それを開いてみます。
+
+### ファイルを読む
+```bash
+// hoge.txtを用意
+$ echo hoge > hoge.txt
+```
+
+このファイルの中身を読んで出力してみましょう。
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	f, err := os.Open("hoge.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	ft := bufio.NewScanner(f)
+	for ft.Scan() {
+		fmt.Println(ft.Text())
+	}
+}
+```
+
+ファイルを開くには `os.Open()` という関数を使用できます。
+また、`defer`という式が現れました。これは遅延実行のための式で、`defer f.Close()`はこの関数終了時に実行されます。
+つまり、main関数を一通り実行し終わったタイミングで実行されます。
+Goでは、このように「ファイルを開いたよ」に対する後片付け的な処理を直後に`defer`で宣言しておくことで表現することが多いです。
+
+ここで、またしても `bufio.NewScanner()`が現れました。先程は標準入力を受け取って、今回はファイルを受け取っています。
+なぜ、このように汎用的なことができているかということをちょっとだけ深堀りします。
+
+### 入出力の抽象化
+Goでは`io.Reader`・`io.Writer`という２つのInterface型を提供しています。
+
+```go
+type Writer interface {
+        Write(p []byte) (n int, err error)
+}
+
+type Reader interface {
+        Read(p []byte) (n int, err error)
+}
+```
+
+https://golang.org/pkg/io/#Reader
+https://golang.org/pkg/io/#Writer
+
+たった一つのメソッドをもつシンプルなインターフェース
+このインターフェースによって、ファイル・標準入出力・ネットワーク・メモリなどが透過的に扱えるように設計されています。
+
+今回の例であれば、`bufio.NewScanner`ですがこの実装の中身はこうなっています。
+
+```go
+func NewScanner(r io.Reader) *Scanner {
+	return &Scanner{
+		r:            r,
+		split:        ScanLines,
+		maxTokenSize: MaxScanTokenSize,
+	}
+}
+```
+
+`io.Reader`を引数に求めているので、さまざまな入力にたいして扱えるものになっているというわけです。
+
+### ファイルを書き込む
+次にファイルを書き込んでみましょう。
+
+```go
+package main
+
+import "os"
+
+func main() {
+	f, err := os.Create("huga.txt")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+}
+
+```
+
+ファイルを作成するには`os.Create`を利用します。これを実行すると、`huga.txt`が作成されているでしょう。
