@@ -6,3 +6,5 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/yuin/gopher-lua v0.0.0-20181109042959-a0dfe84f6227 // indirect
 )
+
+go 1.13
