@@ -16,7 +16,7 @@ func init() {
 }
 
 func main() {
-	flag.Parse() // 実際にフラグを設定します
-	fmt.Println(msg)
+	flag.Parse()      // 実際にフラグを設定します
+	fmt.Println(*msg) // *でポインタの値をとってる
 	fmt.Println(strings.Repeat("にゃーん", nyan))
 }

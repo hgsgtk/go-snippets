@@ -40,3 +40,47 @@ go run main.go hoge hoge hoge
 
 https://golang.org/pkg/flag/
 
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"strings"
+)
+
+var msg = flag.String("msg", "Hello PHPer", "表示したいメッセージを入力してね")
+var nyan int
+
+// パッケージの初期化関数です
+func init() {
+	// & はポインタ
+	flag.IntVar(&nyan, "nyan", 1, "にゃーんと言ってほしい回数")
+}
+
+func main() {
+	flag.Parse() // 実際にフラグを設定します
+	fmt.Println(*msg) // *でポインタの値をとってる
+	fmt.Println(strings.Repeat("にゃーん", nyan))
+}
+```
+
+実際にオプションをつけて実行してみましょう。
+
+```bash
+$ go run main.go -msg="HelloVanillaJS" -nyan=2
+  HelloVanillaJS
+  にゃーんにゃーん
+```
+
+ちなみに、 `-h` や `-help` と渡すと、HELPを出すことができます。
+
+```bash
+$ go run rcvflg/main.go -h
+Usage of /var/folders/lg/rdr0tvnd6kzblb0y1xmpvvx00000gn/T/go-build919209028/b001/exe/main:
+  -msg string
+        表示したいメッセージを入力してね (default "Hello PHPer")
+  -nyan int
+        にゃーんと言ってほしい回数 (default 1)
+exit status 2
+```
