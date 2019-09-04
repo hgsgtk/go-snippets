@@ -88,6 +88,34 @@ exit status 2
 ## 標準入力を受け取る
 次は標準入力を受け取るパターンをやってみましょう。標準入力を受け取るとパイプで受け取ってなにかすることができますね
 
+`os` パッケージの`os.Stdin`から標準入力を受け取ることができます。
+
+```go
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
+
+func main() {
+	stdin := bufio.NewScanner(os.Stdin)
+	for stdin.Scan() {
+		fmt.Println(stdin.Text() + " by Go")
+	}
+}
+```
+
+これをパイプつなぎで実行してみましょう。
+
+```bash
+$ echo huga | go run stdin/main.go
+huga by Go
+```
+
+標準入力で受け取った huga が ` by Go`という文字列と結合されて出力される
+
 ## コマンドを実行する
 `echo`など、osコマンドを実行できたらシェルスクリプトの代わりにもなりそうですね、チョット複雑であればGoのほうが良いかもしれませんね。
 
