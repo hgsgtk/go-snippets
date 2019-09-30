@@ -7,7 +7,9 @@ import (
 
 // 第13章 Go言語と並列処理
 // 並行 Concurrent: CPU数、コア数の限界を超えて複数の仕事を同時に行う
+// システムが複数の動作を同時に実行状態（in progress）に保てる機能を備えていること
 // 並列 Parallel: 複数CPU、コアを効率よく扱って計算速度を上げる
+// 複数の動作を同時に実行できること
 
 func sub1(c int) {
 	fmt.Println("share by arguments:", c*c)
