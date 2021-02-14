@@ -18,7 +18,7 @@ import (
 var apiDomain string
 var redirectURL = "http://127.0.0.1:18888"
 
-func getClient(clientID string, clientSecret string, state string) *http.Client {
+func getClient(clientID string, clientSecret string, state string) (*http.Client, error) {
 	endPoint := oauth2.Endpoint{
 		AuthURL:  apiDomain + "/oauth/authorize",
 		TokenURL: apiDomain + "/oauth/token",
@@ -37,7 +37,7 @@ func getClient(clientID string, clientSecret string, state string) *http.Client 
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	sslcli := &http.Client{Transport: tr}
-	ctx := context.TODO()
+	ctx := context.Background()
 	ctx = context.WithValue(ctx, oauth2.HTTPClient, sslcli)
 
 	file, err := os.Open("access_token.json")
@@ -57,26 +57,28 @@ func getClient(clientID string, clientSecret string, state string) *http.Client 
 			}),
 		}
 		go server.ListenAndServe()
-		open.Start(url)
+		if err := open.Start(url); err != nil {
+			return nil, err
+		}
 		token, err = conf.Exchange(ctx, <-code)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 		file, err := os.Create("access_token.json")
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		json.NewEncoder(file).Encode(token)
 	} else if err == nil {
 		token = &oauth2.Token{}
 		json.NewDecoder(file).Decode(token)
 	} else {
-		panic(err)
+		return nil, err
 	}
 
 	client := oauth2.NewClient(ctx, conf.TokenSource(ctx, token))
-	return client
+	return client, nil
 }
 
 func getUser(client *http.Client) {
@@ -220,6 +222,31 @@ func postOrderEditStatus(client *http.Client, values url.Values) {
 	fmt.Println(string(editedOrder))
 }
 
+type item struct {
+	Title string
+	Price int
+	Stock int
+}
+
+// See also https://docs.thebase.in/docs/api/items/add
+func addNewItem(client *http.Client, item item) error {
+	resp, err := client.PostForm(apiDomain+"/items/add", url.Values{
+		"title": {"2021-02-15 メンテナンス明け記念商品"},
+		"price": {"5000"},
+		"stock": {"10"},
+	})
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	resb, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(os.Stdout, string(resb))
+	return nil
+}
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -231,16 +258,18 @@ func main() {
 	state := os.Getenv("STATE")
 
 	// oauth2 authenticated client
-	client := getClient(clientID, clientSecret, state)
-
-	fmt.Println("Your orders")
-	getOrders(client)
-	fmt.Println("Your order detail")
-	getOrder(client, "yours")
-	fmt.Println("Edit your order status")
-	values := url.Values{
-		"order_item_id": {"yours"},
-		"status":        {"dispatched"},
+	client, err := getClient(clientID, clientSecret, state)
+	if err != nil {
+		_, _ = fmt.Fprint(os.Stdout, "error while get authenticated client")
+		os.Exit(1)
 	}
-	postOrderEditStatus(client, values)
+
+	if err := addNewItem(client, item{
+		Title: "2021-02-15 メンテナンス明け記念商品",
+		Price: 5000,
+		Stock: 10,
+	}); err != nil {
+		_, _ = fmt.Fprint(os.Stdout, "error while add new item")
+		os.Exit(1)
+	}
 }
