@@ -1,6 +1,7 @@
-package wsproxy
+package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,7 +10,7 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-func Echo(w http.ResponseWriter, r *http.Request) {
+func echo(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Upgrading error: %#v\n", err)
@@ -28,5 +29,15 @@ func Echo(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Writing error: %#v\n", err)
 			break
 		}
+	}
+}
+
+func main() {
+	p := 12345
+	log.Printf("Starting websocket echo server on port %d", p)
+
+	http.HandleFunc("/", echo)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", p), nil); err != nil {
+		log.Panicf("Error while starting to listen: %#v", err)
 	}
 }
