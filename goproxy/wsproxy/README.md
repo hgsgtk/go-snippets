@@ -1,7 +1,7 @@
 # WebSocket proxy
 
 ```
-$ go run cmd/server/main.go
+$ go run server/main.go
 2021/12/08 16:18:36 Starting websocket echo server on port 12345
 
 
@@ -18,7 +18,7 @@ $ go run cmd/server/main.go
 ```
 
 ```
-$ go run cmd/client/main.go
+$ go run client/main.go
 2021/12/08 16:18:49 recv: 2021-12-08 16:18:49.748794 +0900 JST m=+1.007234049
 2021/12/08 16:18:50 recv: 2021-12-08 16:18:50.750972 +0900 JST m=+2.009381637
 2021/12/08 16:18:51 recv: 2021-12-08 16:18:51.750292 +0900 JST m=+3.008672604
