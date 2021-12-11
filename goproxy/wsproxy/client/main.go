@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,18 +12,21 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
 	endpointUrl := "ws://localhost:12345"
 
-	dialer := websocket.Dialer{}
-	// TODO: What contains in a response
-	c, _, err := dialer.Dial(endpointUrl, nil)
+	dialer := websocket.Dialer{
+		Subprotocols: []string{"json"},
+	}
+	c, _, err := dialer.DialContext(ctx, endpointUrl, nil)
 	if err != nil {
 		log.Panicf("Dial failed: %#v\n", err)
 	}
 	defer c.Close()
+	fmt.Printf("negotiated protocol: %q\n", c.Subprotocol())
 
 	done := make(chan struct{})
 	go func() {
