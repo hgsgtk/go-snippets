@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"time"
@@ -17,9 +20,16 @@ func main() {
 	signal.Notify(interrupt, os.Interrupt)
 
 	endpointUrl := "ws://localhost:12345"
+	proxyUrl := "http://localhost:54321"
 
+	purl, err := url.Parse(proxyUrl)
+	if err != nil {
+		log.Panicf("url parse failed: %#v\n", err)
+	}
 	dialer := websocket.Dialer{
-		Subprotocols: []string{"json"},
+		Subprotocols:    []string{"json"},
+		Proxy:           http.ProxyURL(purl),
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	c, _, err := dialer.DialContext(ctx, endpointUrl, nil)
 	if err != nil {
