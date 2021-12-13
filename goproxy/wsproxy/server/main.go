@@ -18,6 +18,8 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 
+	log.Println("Success to handshake with client")
+
 	for {
 		mt, message, err := c.ReadMessage()
 		if err != nil {
