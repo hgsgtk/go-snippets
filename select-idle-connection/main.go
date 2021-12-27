@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"time"
 )
 
-type ConnID string
-
 type Conn struct {
-	ID ConnID
+	ID string
 	// It may contains some kind of connections like database, websocket and etc.
 }
 
@@ -44,7 +41,6 @@ func (s *Dispatcher) Select() (*Conn, error) {
 	}
 
 	return conn, nil
-
 }
 
 func main() {
@@ -55,25 +51,23 @@ func main() {
 		p.idle = make(chan *Conn)
 		pools = append(pools, p)
 	}
-	becomeIdlePool := new(Pool)
-	pools = append(pools, becomeIdlePool)
 
 	d := Dispatcher{pools: pools}
 
 	// Notify a connection becomes idle
 	go func() {
-		time.Sleep(2 * time.Second)
-		c := &Conn{ID: "idle-one"}
-		becomeIdlePool.idle <- c
+		for i, pool := range pools {
+			c := &Conn{ID: fmt.Sprintf("%d", i)}
+			pool.idle <- c
+		}
 	}()
 
-	go func() {
+	// Wait and select an idle connection from pools
+	for i := 0; i < 4; i++ {
 		selected, err := d.Select()
 		if err != nil {
 			fmt.Printf("err: %#v", err)
 		}
-		fmt.Printf("selected ID: %s", selected.ID)
-	}()
-
-	time.Sleep(3 * time.Second)
+		fmt.Printf("selected Connection ID: %s\n", selected.ID)
+	}
 }
