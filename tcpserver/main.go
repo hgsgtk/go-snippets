@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// Listen for incoming connections.
-	addr := "localhost:8888"
+	addr := "127.0.0.1:" // a port number will be automatically chosen
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic(err)
