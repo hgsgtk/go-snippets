@@ -13,9 +13,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// Close the listener when the application closes.
 	defer l.Close()
-	fmt.Printf("Listening on %s\n", addr)
+	host, port, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Listening on host: %s, port: %s\n", host, port)
 
 	for {
 		// Listen for an incoming connection
