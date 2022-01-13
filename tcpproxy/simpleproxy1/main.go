@@ -1,4 +1,4 @@
-// This is copying https://gist.github.com/vmihailenco/1380352 to lean tcp proxy in Go
+// Ref: https://gist.github.com/vmihailenco/1380352#gistcomment-3731994
 package main
 
 import (
@@ -8,38 +8,95 @@ import (
 	"net"
 )
 
-var lAddr string = "localhost:9999" // if 0, a port number is automatically chosen
-var rAddr string = "localhost:80"
-
-// TODO: clear my mind by creating the server architecture diagram
-// TODO: need tcp server for testing
 func main() {
-	fmt.Printf("Listening: %s\nProxing %s\n", lAddr, rAddr)
+	remoteAddr := make(chan string)
+	// The remote address launched in another process.
+	go runRemoteServer(remoteAddr)
 
-	// ListenTCP acts like Listen for TCP networks.
-	// See https://pkg.go.dev/net#ListenTCP in more detail.
-	listener, err := net.Listen("tcp", lAddr)
+	addr := <-remoteAddr
+	runProxyServer(addr)
+}
+
+func runProxyServer(remoteAddr string) string {
+	// Listen for incoming connection
+	// if 0, a port number is automatically chosen
+	localAddr := "localhost:0"
+	listener, err := net.Listen("tcp", localAddr)
 	if err != nil {
 		panic(err)
 	}
+	host, port, err := net.SplitHostPort(listener.Addr().String())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf(
+		"Proxy server listening on host: %s, port: %s. Proxing to %s\n",
+		host,
+		port,
+		remoteAddr,
+	)
 
 	for {
-		conn, err := listener.Accept()
+		localConn, err := listener.Accept()
 		if err != nil {
 			log.Println("error accepting connection", err)
 			continue
 		}
+		// RemoteAddr returns the remote network address.
+		fmt.Printf("Proxy server accepts new connection: %s\n", localConn.RemoteAddr())
+
 		go func() {
-			conn2, err := net.Dial("tcp", lAddr)
+			defer localConn.Close()
+
+			// Proxy remote address
+			remoteConn, err := net.Dial("tcp", remoteAddr)
 			if err != nil {
 				log.Println("error dialing remote addr", err)
 				return
 			}
-			// TODO: What is that?
-			go io.Copy(conn2, conn)
-			io.Copy(conn, conn2)
-			conn2.Close()
-			conn.Close()
+			defer remoteConn.Close()
+
+			// copy local connection to remote connection
+			go io.Copy(remoteConn, localConn)
+			// copy remote connection to local connection
+			io.Copy(localConn, remoteConn)
 		}()
+	}
+}
+
+func runRemoteServer(serverStarted chan<- string) string {
+	// Listen for incoming connections.
+	addr := "127.0.0.1:" // a port number will be automatically chosen
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+	host, port, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Remote server is listening on host: %s, port: %s\n", host, port)
+	serverStarted <- l.Addr().String()
+
+	for {
+		// Listen for an incoming connection
+		conn, err := l.Accept()
+		if err != nil {
+			panic(err)
+		}
+		// Handle connections in a new goroutine
+		go func(conn net.Conn) {
+			buf := make([]byte, 1024)
+			len, err := conn.Read(buf)
+			if err != nil {
+				fmt.Printf("Error reading: %#v\n", err)
+				return
+			}
+			fmt.Printf("Remote server received a message: %s\n", string(buf[:len]))
+
+			conn.Write([]byte("Message received.\n"))
+			conn.Close()
+		}(conn)
 	}
 }
