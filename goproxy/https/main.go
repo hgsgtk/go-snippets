@@ -6,6 +6,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -62,7 +63,7 @@ func main() {
 				bufio.NewReader(client),
 				bufio.NewWriter(client),
 			)
-			remote, err := connectDial(proxy, "tcp", r.URL.Host)
+			remote, err := connectDial(r.Context(), proxy, "tcp", r.URL.Host)
 			if err != nil {
 				// TODO: better error handling is?
 				panic(err)
@@ -108,25 +109,27 @@ func main() {
 	}()
 
 	// TODO: listen to the TLS ClientHello
+	// TODO: should support non-SNI request? https://github.com/elazarl/goproxy/issues/231
 }
 
-func dial(proxy *goproxy.ProxyHttpServer, network, addr string) (c net.Conn, err error) {
+func dial(ctx context.Context, proxy *goproxy.ProxyHttpServer, network, addr string) (c net.Conn, err error) {
 	// Tr: HTTP Transport
 	// TODO: Understand HTTP transport deeply
-	if proxy.Tr.Dial != nil {
+	if proxy.Tr.DialContext != nil {
 		// TODO: use DialContext instead
 		// TODO: make a pull request to use a context
-		return proxy.Tr.Dial(network, addr)
+		return proxy.Tr.DialContext(ctx, network, addr)
 	}
 	// TODO: What's difference between proxy.Tr.Dial and net.Dial
-	return net.Dial(network, addr)
+	var d net.Dialer
+	return d.DialContext(ctx, network, addr)
 }
 
 // TODO: what's it?
-func connectDial(proxy *goproxy.ProxyHttpServer, network, addr string) (c net.Conn, err error) {
+func connectDial(ctx context.Context, proxy *goproxy.ProxyHttpServer, network, addr string) (c net.Conn, err error) {
 	// ConnectDial will be used to create TCP connections for CONNECT requests if nil Tr.Dial will be used
 	if proxy.ConnectDial == nil {
-		return dial(proxy, network, addr)
+		return dial(ctx, proxy, network, addr)
 	}
 	return proxy.ConnectDial(network, addr)
 }
