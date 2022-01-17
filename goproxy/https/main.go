@@ -1,4 +1,4 @@
-// https://github.com/elazarl/goproxy/tree/d06c3be7c11b750d8cd76d0f094936e07cac0ada/examples/goproxy-transparent
+// https://github.com/elazarl/goproxy/blob/adb46da277acd7aea06aeb8b5a21ec6bef7fb247/examples/goproxy-transparent/transparent.go
 // TODO: support WCCP means...?
 // TODO: explicit means...? see more https://github.com/elazarl/goproxy/blob/d06c3be7c11b750d8cd76d0f094936e07cac0ada/examples/goproxy-eavesdropper/main.go .
 // TODO: SNI value in the TLS ClientHello which most modern clients do these days
@@ -6,14 +6,17 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/elazarl/goproxy"
+	"github.com/inconshreveable/go-vhost"
 )
 
 func main() {
@@ -108,8 +111,72 @@ func main() {
 		log.Fatalln(http.ListenAndServe(httpAddr, proxy))
 	}()
 
-	// TODO: listen to the TLS ClientHello
+	// listen to the TLS ClientHello
 	// TODO: should support non-SNI request? https://github.com/elazarl/goproxy/issues/231
+	ln, err := net.Listen("tcp", httpsAddr)
+	if err != nil {
+		log.Fatalf("Error listening for https connection - %v", err)
+	}
+
+	for {
+		c, err := ln.Accept()
+		if err != nil {
+			log.Printf("Error accepting new connection - %v", err)
+			continue
+		}
+		// Why goroutine?
+		go func(c net.Conn) {
+			// TODO: What is that?
+			tlsConn, err := vhost.TLS(c)
+			if err != nil {
+				log.Printf("Error accepting new connection - %v", err)
+				// TODO: No need to continue?
+			}
+			if tlsConn.Host() == "" {
+				// TODO: non-SNI enabled clients...?
+				//
+				// # Use cURL with SNI (Server name indication)
+				// https://stackoverflow.com/questions/12941703/use-curl-with-sni-server-name-indication
+				// It didn't work to add the option `--resolve`.
+				// i.e.
+				// 		$ curl -vik \--resolve localhost:3129:127.0.0.1:3129 \
+				//		-x http://localhost:3129 \
+				//		https://example.com
+				//
+				// 		2022/01/17 14:43:49 Connot support non-SNI enabled clients
+				//
+				//
+				// # Use openssl to check the SNI certificate
+				// https://www.claudiokuenzler.com/blog/693/curious-case-of-curl-ssl-tls-sni-http-host-header
+				// https://stackoverflow.com/questions/3220419/openssl-s-client-using-a-proxy
+				// i.e.
+				// 		$ openssl s_client -proxy localhost:3129 -connect example.com
+				//
+				//		CONNECTED(00000005)
+				//		2022/01/17 14:51:17 Connot support non-SNI enabled clients
+				log.Printf("Connot support non-SNI enabled clients")
+				return
+			}
+			// TODO: what kind of design model?
+			connectReq := &http.Request{
+				Method: http.MethodConnect,
+				URL: &url.URL{
+					// TODO: Opaque...?
+					Opaque: tlsConn.Host(),
+					// TODO: I don't know JoinHostPort
+					// TODO: 443 is enough?
+					Host: net.JoinHostPort(tlsConn.Host(), "443"),
+				},
+				Host:       tlsConn.Host(),
+				Header:     make(http.Header),
+				RemoteAddr: c.RemoteAddr().String(),
+			}
+
+			resp := dumbResponseWriter{tlsConn}
+			// TODO: proxy.ServeHTTP directly use!
+			proxy.ServeHTTP(resp, connectReq)
+		}(c)
+	}
 }
 
 func dial(ctx context.Context, proxy *goproxy.ProxyHttpServer, network, addr string) (c net.Conn, err error) {
@@ -132,4 +199,32 @@ func connectDial(ctx context.Context, proxy *goproxy.ProxyHttpServer, network, a
 		return dial(ctx, proxy, network, addr)
 	}
 	return proxy.ConnectDial(network, addr)
+}
+
+// TODO: what is that? dumb?
+type dumbResponseWriter struct {
+	net.Conn
+}
+
+// TODO: Header is ok to panic?
+func (d dumbResponseWriter) Header() http.Header {
+	panic("Header() should not be called on this ResponseWriter")
+}
+
+func (d dumbResponseWriter) Write(buf []byte) (int, error) {
+	if bytes.Equal(buf, []byte("HTTP/1.0 200 OK\r\n\r\n")) {
+		// throw away the HTTP OK response from the faux CONNECT request
+		// TODO: what is the faux CONNECT request
+		return len(buf), nil
+	}
+	return d.Conn.Write(buf)
+}
+
+func (d dumbResponseWriter) WriteHeader(code int) {
+	panic("WriteHeader() should not be called on this ResponseWriter")
+}
+
+// TODO: What is Hijack, which interface it implements?
+func (d dumbResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return d, bufio.NewReadWriter(bufio.NewReader(d), bufio.NewWriter(d)), nil
 }
