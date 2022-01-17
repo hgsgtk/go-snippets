@@ -145,7 +145,7 @@ func main() {
 			}
 			// Host() returns the server name only set if the client is using SNI.
 			if tlsConn.Host() == "" {
-				// TODO: non-SNI enabled clients...?
+				// non-SNI clients...? -> No, SNI is essential for proxy.
 				//
 				// # SNI (Server Name Indication)
 				// In Client Hello, the client greets the server and tells it the server name it wants to connect.
@@ -191,6 +191,10 @@ func main() {
 				// # The term "Virtual hosting" in the field of HTTP
 				// https://en.wikipedia.org/wiki/Virtual_hosting
 				// Virtual hosting is a method for hosting multiple domain name on a single server.
+				//
+				// # Support broweser lists
+				// https://webmasters.stackexchange.com/questions/69710/which-browsers-support-sni
+				// https://en.wikipedia.org/wiki/Server_Name_Indication#Support
 				log.Printf("Connot support non-SNI enabled clients")
 				return
 			}
