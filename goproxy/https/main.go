@@ -1,4 +1,6 @@
-// https://github.com/elazarl/goproxy/blob/adb46da277acd7aea06aeb8b5a21ec6bef7fb247/examples/goproxy-transparent/transparent.go
+// Reference sample codes
+// - https://github.com/elazarl/goproxy/blob/adb46da277acd7aea06aeb8b5a21ec6bef7fb247/examples/goproxy-transparent/transparent.go
+// - https://www.agwa.name/blog/post/writing_an_sni_proxy_in_go/media/sniproxy.go
 // TODO: support WCCP means...?
 // TODO: explicit means...? see more https://github.com/elazarl/goproxy/blob/d06c3be7c11b750d8cd76d0f094936e07cac0ada/examples/goproxy-eavesdropper/main.go .
 // TODO: SNI value in the TLS ClientHello which most modern clients do these days
@@ -16,6 +18,7 @@ import (
 	"regexp"
 
 	"github.com/elazarl/goproxy"
+	// TODO: replace go-vhost to the crypto/tls package
 	"github.com/inconshreveable/go-vhost"
 )
 
@@ -111,6 +114,8 @@ func main() {
 		log.Fatalln(http.ListenAndServe(httpAddr, proxy))
 	}()
 
+	// A standard listen/accept loop to create a TCP server https://pkg.go.dev/net#pkg-overview
+	//
 	// listen to the TLS ClientHello
 	// TODO: should support non-SNI request? https://github.com/elazarl/goproxy/issues/231
 	ln, err := net.Listen("tcp", httpsAddr)
@@ -125,15 +130,28 @@ func main() {
 			continue
 		}
 		// Why goroutine?
+		// Note: once the Client Hello is read, the bytes are gone
+		// 	quoted from https://www.agwa.name/blog/post/writing_an_sni_proxy_in_go
 		go func(c net.Conn) {
-			// TODO: What is that?
+			// TLS parses the ClientHello message on conn and returns a new.
+			// Client Hello is defined at RFC 8446
+			// https://datatracker.ietf.org/doc/html/rfc8446#section-4.1.2
+			// > When a client first connects to a server, it is REQUIRED to send the
+			// > ClientHello as its first TLS message.
 			tlsConn, err := vhost.TLS(c)
 			if err != nil {
 				log.Printf("Error accepting new connection - %v", err)
 				// TODO: No need to continue?
 			}
+			// Host() returns the server name only set if the client is using SNI.
 			if tlsConn.Host() == "" {
 				// TODO: non-SNI enabled clients...?
+				//
+				// # SNI (Server Name Indication)
+				// In Client Hello, the client greets the server and tells it the server name it wants to connect.
+				// This is called is SNI (Server Name Indication) which is defined at RFC6066.
+				// https://datatracker.ietf.org/doc/html/rfc6066#section-3 (Transport Layer Security (TLS) Extensions: Extension Definitions)
+				// > TLS does not provide a mechanism for a client to tel a server the name of the server it is contacting.
 				//
 				// # Use cURL with SNI (Server name indication)
 				// https://stackoverflow.com/questions/12941703/use-curl-with-sni-server-name-indication
@@ -154,6 +172,25 @@ func main() {
 				//
 				//		CONNECTED(00000005)
 				//		2022/01/17 14:51:17 Connot support non-SNI enabled clients
+				//
+				// # SNI for a proxy
+				// https://www.agwa.name/blog/post/writing_an_sni_proxy_in_go
+				// The SNI value works well with split-horizon DNS where the proxy see the backend's private IP address
+				// and external clients see the proxy's public IP address.
+				// > a proxy server can read the server name and use it to decide where to route the connection,
+				// > without having to decrypt the connection
+				//
+				// # SNI in the crypto/tls package
+				// https://pkg.go.dev/crypto/tls#ClientHelloInfo
+				// > ClientHelloInfo.ServerName indicates the name of the server requested by the client
+				// > in order to support virtual hosting (only set if the client is using SNI)
+				// >
+				// > ClientHelloInfo.GetCertificate will only be called
+				// > if the client supplies SNI information or if certificates is empty.
+				//
+				// # The term "Virtual hosting" in the field of HTTP
+				// https://en.wikipedia.org/wiki/Virtual_hosting
+				// Virtual hosting is a method for hosting multiple domain name on a single server.
 				log.Printf("Connot support non-SNI enabled clients")
 				return
 			}
