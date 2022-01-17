@@ -23,8 +23,8 @@ import (
 )
 
 func main() {
-	httpAddr := ":3128"
-	httpsAddr := ":3129"
+	httpAddr := ":3129"
+	httpsAddr := ":3128"
 
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = true
@@ -124,26 +124,53 @@ func main() {
 	}
 
 	for {
-		c, err := ln.Accept()
+		conn, err := ln.Accept()
 		if err != nil {
 			log.Printf("Error accepting new connection - %v", err)
 			continue
 		}
+
 		// Why goroutine?
 		// Note: once the Client Hello is read, the bytes are gone
 		// 	quoted from https://www.agwa.name/blog/post/writing_an_sni_proxy_in_go
-		go func(c net.Conn) {
+		go func(conn net.Conn) {
+			// Read a body - Can't read, wait forever...
+			// buf := make([]byte, 0, 4096)
+			// tmp := make([]byte, 256)
+			// for {
+			// 	n, err := conn.Read(tmp)
+			// 	if err != nil {
+			// 		if err != io.EOF {
+			// 			log.Printf("read error: %v\n", err)
+			// 		}
+			// 		break
+			// 	}
+			// 	buf = append(buf, tmp[:n]...)
+			// }
+			// log.Printf("Info: reading a connection: %q", buf)
+
 			// TLS parses the ClientHello message on conn and returns a new.
 			// Client Hello is defined at RFC 8446
 			// https://datatracker.ietf.org/doc/html/rfc8446#section-4.1.2
 			// > When a client first connects to a server, it is REQUIRED to send the
 			// > ClientHello as its first TLS message.
-			tlsConn, err := vhost.TLS(c)
+			tlsConn, err := vhost.TLS(conn)
 			if err != nil {
 				log.Printf("Error accepting new connection - %v", err)
-				// TODO: No need to continue?
+				// in govhost tls.go, alertRecordOverflow alert = 22
+				// 2022/01/17 18:14:30 Error accepting new connection - record overflow
+				// 1. if n > maxCiphertext {
+				// 	https://github.com/inconshreveable/go-vhost/blob/master/tls.go#L222
+				// 	maxPlaintext    = 16384        // maximum plaintext payload length
+				// 2. if len(data) > maxPlaintext {
+				// 	https://github.com/inconshreveable/go-vhost/blob/master/tls.go#L246
+				// 	maxCiphertext   = 16384 + 2048 // maximum ciphertext payload length
+				return
 			}
 			// Host() returns the server name only set if the client is using SNI.
+			fmt.Printf("debug local addr: %s\n", tlsConn.Conn.LocalAddr())
+			fmt.Printf("debug remote addr: %s\n", tlsConn.Conn.RemoteAddr())
+			fmt.Printf("debug remote addr: %v\n", tlsConn.ClientHelloMsg)
 			if tlsConn.Host() == "" {
 				// non-SNI clients...? -> No, SNI is essential for proxy.
 				//
@@ -195,6 +222,8 @@ func main() {
 				// # Support broweser lists
 				// https://webmasters.stackexchange.com/questions/69710/which-browsers-support-sni
 				// https://en.wikipedia.org/wiki/Server_Name_Indication#Support
+				//
+				// i.e. Firefox https://www.inmotionhosting.com/support/security/dns-over-https-encrypted-sni-in-firefox/
 				log.Printf("Connot support non-SNI enabled clients")
 				return
 			}
@@ -210,13 +239,13 @@ func main() {
 				},
 				Host:       tlsConn.Host(),
 				Header:     make(http.Header),
-				RemoteAddr: c.RemoteAddr().String(),
+				RemoteAddr: conn.RemoteAddr().String(),
 			}
 
 			resp := dumbResponseWriter{tlsConn}
 			// TODO: proxy.ServeHTTP directly use!
 			proxy.ServeHTTP(resp, connectReq)
-		}(c)
+		}(conn)
 	}
 }
 
