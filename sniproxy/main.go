@@ -52,6 +52,7 @@ func handleConnection(clientConn net.Conn) {
 		log.Print("Blocking connection to unauthorized backend")
 		return
 	}
+
 	backendConn, err := net.DialTimeout(
 		"tcp",
 		net.JoinHostPort(clientHello.ServerName, "443"),
@@ -92,6 +93,8 @@ func readClientHello(reader io.Reader) (*tls.ClientHelloInfo, error) {
 	var hello *tls.ClientHelloInfo
 
 	err := tls.Server(&readOnlyConn{reader: reader}, &tls.Config{
+		// GetConfigForClient is called after a ClientHello is received from a client.
+		// https://pkg.go.dev/crypto/tls#Config.GetConfigForClient
 		GetConfigForClient: func(argHello *tls.ClientHelloInfo) (*tls.Config, error) {
 			hello = new(tls.ClientHelloInfo)
 			*hello = *argHello
@@ -115,6 +118,18 @@ type readOnlyConn struct {
 // Read can be made to time out and return an error after a fixed
 // time limit; see SetDeadline and SetReadDeadline.
 func (r *readOnlyConn) Read(b []byte) (n int, err error) {
+	// $ curl -Lv --proxy http://127.0.0.1:44433 https://example.com
+	//
+	// 	* Proxy CONNECT aborted
+	// 	* CONNECT phase completed!
+	// 	* Closing connection 0
+	//	curl: (56) Proxy CONNECT aborted
+	//
+	// It may causes the error - first record does not look like a TLS handshake
+	// https://cs.opensource.google/go/go/+/refs/tags/go1.17.6:src/crypto/tls/conn.go;l=643
+	// > First message, be extra suspicious: this might not be a TLS client. Bail out before reading a full 'body', if possible.
+	// > The current max version is 3.3 so if the version is >= 16.0, it's probably not real.
+	fmt.Printf("reading: %s\n", string(b)) // "": empty bytes.
 	return r.reader.Read(b)
 }
 
