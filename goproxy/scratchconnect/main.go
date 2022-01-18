@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sync"
 )
 
 func main() {
@@ -70,8 +71,25 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	proxyClient.Write([]byte("HTTP/1.0 200 OK\r\n\r\n"))
 
 	// TODO: write the request to the target site.
-	// targetTCP, targetOK := targetSiteConn.(halfClosable)
-	// proxyClientTCP, clientOK := proxyClient.(halfClosable)
+	targetTCP, targetOK := targetSiteConn.(halfClosable)
+	proxyClientTCP, clientOK := proxyClient.(halfClosable)
+	if targetOK && clientOK {
+		// copy the request from src: proxyClientTCP to dst: targetTCP
+		go copyAndClose(targetTCP, proxyClientTCP)
+		// copy the response from src: targetTCP to dst: proxyClientTCP
+		go copyAndClose(proxyClientTCP, targetTCP)
+	} else {
+		// TODO: when scenario comes here?
+		go func() {
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go copyOrWarn(targetSiteConn, proxyClient, &wg)
+			go copyOrWarn(proxyClient, targetSiteConn, &wg)
+			wg.Wait()
+			proxyClient.Close()
+			targetSiteConn.Close()
+		}()
+	}
 }
 
 // TODO: why io.WriteCloser
@@ -90,4 +108,20 @@ type halfClosable interface {
 	net.Conn
 	CloseWrite() error
 	CloseRead() error
+}
+
+func copyAndClose(dst, src halfClosable) {
+	if _, err := io.Copy(dst, src); err != nil {
+		log.Printf("Error copying to client: %v", err)
+	}
+
+	dst.CloseWrite()
+	src.CloseRead()
+}
+
+func copyOrWarn(dst io.Writer, src io.Reader, wg *sync.WaitGroup) {
+	if _, err := io.Copy(dst, src); err != nil {
+		log.Printf("Error copying to client: %v", err)
+	}
+	wg.Done()
 }
