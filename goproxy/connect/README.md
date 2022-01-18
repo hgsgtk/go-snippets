@@ -204,3 +204,15 @@ https://pkg.go.dev/gopkg.in/elazarl/goproxy.v1#pkg-variables
 https://github.com/elazarl/goproxy/blob/947c36da3153ff334e74d9d980de341d25f358ba/https.go#L102
 
 By the way, goproxy contains a [X509Key pair](https://pkg.go.dev/crypto/tls#X509KeyPair).
+
+- ConnectMitm: AlwaysMitm is a HttpsHandler that always eavesdrop https connections
+
+```go
+	/*
+		$ curl -I -Lv -x http://127.0.0.1:8080 \
+		https://example.com
+
+		2022/01/18 15:47:00 [001] WARN: Cannot handshake client example.com:443 remote error: tls: unknown certificate authority
+	*/
+	proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
+```
