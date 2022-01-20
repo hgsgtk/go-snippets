@@ -111,6 +111,17 @@ type halfClosable interface {
 }
 
 func copyAndClose(dst, src halfClosable) {
+	// Copy copies from src to dst until either EOF is reached on src or an error occurs..
+	// https://pkg.go.dev/io#Copy
+	// If src implements the WriterTo interface, the copy is implemented by calling src.WriteTo(dst). Otherwise, if dst implements the ReaderFrom interface,
+	// the copy is implemented by calling dst.ReadFrom(src).
+	//
+	// io.ReaderFrom interface.
+	// https://pkg.go.dev/io#ReaderFrom
+	// > ReadFrom reads data from r until EOF or error. The return value n is the number of bytes read. Any error except EOF encountered during the read is also returned.
+	//
+	// func (c *TCPConn) ReadFrom(r io.Reader) (int64, error)
+	// https://pkg.go.dev/net#TCPConn.ReadFrom
 	if _, err := io.Copy(dst, src); err != nil {
 		log.Printf("Error copying to client: %v", err)
 	}
