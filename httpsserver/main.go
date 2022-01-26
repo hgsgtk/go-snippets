@@ -2,9 +2,12 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -21,33 +24,45 @@ func runTLSServer() {
 		fmt.Fprintf(w, "Hello world!")
 	})
 
-	log.Fatal(http.ListenAndServeTLS(":9000", "localhost.crt", "localhost.key", nil))
-
+	log.Fatal(http.ListenAndServeTLS(":8080", "localhost.crt", "localhost.key", nil))
 }
 
 func execClient() {
 	// https://doc.xuwenliang.com/docs/go/1397
-	conf := &tls.Config{
-		InsecureSkipVerify: true,
-	}
-
-	conn, err := tls.Dial("tcp", "127.0.0.1:9000", conf)
+	crt, err := os.ReadFile("localhost.crt")
 	if err != nil {
-		log.Fatalf("dial error: %v", err)
-		return
+		log.Fatalf("read certificate file: %v", err)
 	}
-	defer conn.Close()
 
-	n, err := conn.Write([]byte("Hello"))
+	roots := x509.NewCertPool()
+	if ok := roots.AppendCertsFromPEM(crt); !ok {
+		log.Fatalf("append certs: %v", err)
+	}
+
+	cert, err := tls.LoadX509KeyPair("localhost.crt", "localhost.key")
 	if err != nil {
-		log.Fatalf("writing error: %v", err)
+		log.Fatalf("load x509 key pair: %v", err)
 	}
 
-	buf := make([]byte, 100)
-	n, err = conn.Read(buf)
+	// https://github.com/jcbsmpsn/golang-https-example/blob/6fa58aeeea418166caf61094e7207a92353d9623/https_client.go
+	tlsConf := &tls.Config{
+		RootCAs:      roots,
+		Certificates: []tls.Certificate{cert},
+	}
+	tr := &http.Transport{TLSClientConfig: tlsConf}
+	client := &http.Client{Transport: tr}
+
+	res, err := client.Get("https://localhost:8080")
 	if err != nil {
-		log.Fatalf("reading error: %v", err)
+		log.Fatalf("error new request: %v", err)
 	}
 
-	log.Printf(string(buf[:n]))
+	defer res.Body.Close()
+
+	resBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalf("error reading: %v", err)
+	}
+
+	log.Printf(string(resBytes))
 }
