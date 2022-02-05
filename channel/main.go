@@ -12,7 +12,7 @@ type Message struct {
 }
 
 func main() {
-	ch := make(chan Message)
+	ch := make(chan Message, 2) // buffered 2
 
 	go func() {
 		defer fmt.Fprintln(os.Stdout, "message hoge sent")
@@ -32,21 +32,31 @@ func main() {
 		}
 	}()
 
+	go func() {
+		defer fmt.Fprintln(os.Stdout, "message piyo sent")
+
+		time.Sleep(2 * time.Second)
+		ch <- Message{
+			Body: "piyo",
+		}
+	}()
+
 	time.Sleep(3 * time.Second)
 
-	m := <-ch
-	log.Printf("message %q received", m)
-	m = <-ch
-	log.Printf("message %q received", m)
-
-	time.Sleep(1 * time.Second)
+	for {
+		m := <-ch
+		log.Printf("message %q received", m)
+	}
 
 	/*
-		goroutine 2 is blocked until main goroutine receives the value.
+		buffered channel
 		$ go run main.go
 		message hoge sent
-		2022/02/05 13:55:35 message {"hoge"} received
-		2022/02/05 13:55:35 message {"huga"} received
 		message huga sent
+		message piyo sent
+		2022/02/05 13:58:40 message {"hoge"} received
+		2022/02/05 13:58:40 message {"huga"} received
+		2022/02/05 13:58:40 message {"piyo"} received
+		fatal error: all goroutines are asleep - deadlock!
 	*/
 }
