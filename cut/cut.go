@@ -21,13 +21,11 @@ func main() {
 	fmt.Printf("decoded: %s\n", decodedString)
 	// Output: Go118:welcome cut
 
-	separatorIndex := strings.IndexByte(decodedString, ':')
-	if separatorIndex < 0 {
+	username, password, ok := strings.Cut(decodedString, ":")
+	if !ok {
 		fmt.Println("not a basic authentication format.")
 		return
 	}
-	username := decodedString[:separatorIndex]
-	password := decodedString[separatorIndex+1:]
 	fmt.Printf("username: %q, password: %q\n", username, password)
 	// username: "Go118", password: "welcome cut"
 }
