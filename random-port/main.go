@@ -13,7 +13,8 @@ func main() {
 		return
 	}
 
-	log.Printf("using port: %d", l.Addr().(*net.TCPAddr).Port)
+	port := l.Addr().(*net.TCPAddr).Port
+	log.Printf("using port: %d", port)
 	if err := http.Serve(l, nil); err != nil {
 		log.Printf("error on serving: %s\n", err)
 		return
