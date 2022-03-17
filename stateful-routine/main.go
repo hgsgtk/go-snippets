@@ -35,8 +35,12 @@ func main() {
 		for {
 			select {
 			case read := <-reads:
+				// If notifications to this channel keep coming,
+				// will notifications to the channel below (writes) be handled?
+				// e.g. 500 items waits to be received
 				read.resp <- state[read.key]
 			case write := <-writes:
+				// Then, when the items in writes channel is handled?
 				state[write.key] = write.val
 				write.resp <- true
 			}
