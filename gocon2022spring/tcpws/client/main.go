@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to the destination: %v", err)
 	}
+	defer tcpConn.Close()
 	wrapTcpConn := tcpws.NewHijackedConn(tcpConn, nil)
 
 	if err := wsConn.WriteHandshakeCompleted(); err != nil {

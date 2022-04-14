@@ -1,6 +1,7 @@
 package tcpws
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -99,8 +100,8 @@ func (c *WrapWSConn) Write(p []byte) (n int, err error) {
 	if err := c.RawConn.WriteMessage(websocket.BinaryMessage, db); err != nil {
 		return 0, err
 	}
-	log.Printf("write to the WebSocket connection: %s", p)
-	return len(db), nil
+	log.Printf("write to the WebSocket connection(length: %d): %s", len(p), p)
+	return len(p), nil
 }
 
 func (c *WrapWSConn) Read(p []byte) (n int, err error) {
@@ -117,7 +118,6 @@ func (c *WrapWSConn) Read(p []byte) (n int, err error) {
 		return 0, fmt.Errorf("unexpected method: %d", dc.Method)
 	}
 
-	p = dc.Data
-	log.Printf("read from the WebSocket connection: %s", p)
-	return len(p), nil
+	log.Printf("read from the WebSocket connection (length: %d): %s", len(p), p)
+	return bytes.NewReader(dc.Data).Read(p)
 }
