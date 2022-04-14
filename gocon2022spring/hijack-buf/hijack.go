@@ -22,12 +22,6 @@ func (h *hijackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	s, err := bufrw.ReadString('\n')
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("read: %s\n", s)
-
 	resp := "HTTP/1.0 200 OK\r\n\r\nGopher at your service\r\n"
 	bufrw.WriteString(resp)
 	bufrw.Flush()
