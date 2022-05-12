@@ -20,9 +20,9 @@ const (
 )
 
 type Protocol struct {
-	Method Method
-	Dest   string // Use for Handshake
-	Data   []byte // Use for Communication
+	Method Method `json:"method"`
+	Dest   string `json:"dest"` // Use for Handshake
+	Data   []byte `json:"data"` // Use for Communication
 }
 
 type WrapWSConn struct {
