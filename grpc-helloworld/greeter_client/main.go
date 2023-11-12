@@ -25,9 +25,9 @@ import (
 	"log"
 	"time"
 
+	pb "github.com/hgsgtk/go-snippets/grpc-helloworld/helloworld"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/hgsgtk/go-snippets/grpc-helloworld/helloworld"
 )
 
 const (
@@ -57,4 +57,10 @@ func main() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Greeting: %s", r.GetMessage())
+
+	r, err = c.SayHelloAgain(ctx, &pb.HelloRequest{Name: *name})
+	if err != nil {
+		log.Fatalf("could not greet again: %v", err)
+	}
+	log.Printf("Greeting again: %s", r.GetMessage())
 }
