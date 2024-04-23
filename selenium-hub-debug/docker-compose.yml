@@ -1,0 +1,108 @@
+version: "3"
+services:
+  selenium-event-bus:
+    image: seleniarm/event-bus:4
+    container_name: selenium-event-bus
+    # environment:
+      # SE_OPTS: "--events-implementation org.openqa.selenium.events.zeromq.ZeroMqEventBus"
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "5557:5557"
+
+  # selenium-sessions:
+  #   image: seleniarm/sessions:4
+  #   container_name: selenium-sessions
+  #   ports:
+  #     - "5556:5556"
+  #   depends_on:
+  #     - selenium-event-bus
+  #   environment:
+  #     - SE_EVENT_BUS_HOST=selenium-event-bus
+  #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+  #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  # selenium-session-queue:
+  #   image: seleniarm/session-queue:4
+  #   container_name: selenium-session-queue
+  #   ports:
+  #     - "5559:5559"
+
+  # selenium-distributor:
+  #   image: seleniarm/distributor:4
+  #   container_name: selenium-distributor
+  #   ports:
+  #     - "5553:5553"
+  #   depends_on:
+  #     - selenium-event-bus
+  #     - selenium-sessions
+  #     - selenium-session-queue
+  #   environment:
+  #     - SE_EVENT_BUS_HOST=selenium-event-bus
+  #     - SE_EVENT_BUS_PUBLISH_PORT=4442
+  #     - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  #     - SE_SESSIONS_MAP_HOST=selenium-sessions
+  #     - SE_SESSIONS_MAP_PORT=5556
+  #     - SE_SESSION_QUEUE_HOST=selenium-session-queue
+  #     - SE_SESSION_QUEUE_PORT=5559
+
+  # selenium-router:
+  #   image: selenium/router:4
+  #   container_name: selenium-router
+  #   ports:
+  #     - "4444:4444"
+  #   depends_on:
+  #     - selenium-distributor
+  #     - selenium-sessions
+  #     - selenium-session-queue
+  #   environment:
+  #     - SE_DISTRIBUTOR_HOST=selenium-distributor
+  #     - SE_DISTRIBUTOR_PORT=5553
+  #     - SE_SESSIONS_MAP_HOST=selenium-sessions
+  #     - SE_SESSIONS_MAP_PORT=5556
+  #     - SE_SESSION_QUEUE_HOST=selenium-session-queue
+  #     - SE_SESSION_QUEUE_PORT=5559
+
+  selenium-node-chrome:
+    image: seleniarm/node-chromium:4.0.0-20211111
+    ports:
+      - "5555:5555"
+    depends_on:
+      - selenium-event-bus
+    environment:
+      JAVA_CLASSPATH: /mnt/*:/opt/selenium/*:.
+      JAVA_OPTS: -Djavax.accessibility.assistive_technologies=
+        -Dwebdriver.chrome.whitelistedIps
+      SE_EVENT_BUS_HOST: selenium-event-bus
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_HOST: selenium-node-chrome
+      SE_OPTS:
+
+  debug-hub:
+    build:
+      context: ./debug-hub/
+    ports:
+      - "5553:5553"
+    depends_on:
+      - selenium-event-bus
+    environment:
+      ENABLE_EVENT_BUS: true
+      SE_EVENT_BUS_HOST: selenium-event-bus
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+
+  # $ docker-compose exec bash-debugger bash
+  bash-debugger:
+    build:
+      context: ./bash/
+    tty: true
+    stdin_open: true
+    depends_on:
+      - selenium-event-bus
+
+  zeromq-server:
+    build:
+      context: ./zeromq-server/
+    ports:
+      - "5556:5556"
