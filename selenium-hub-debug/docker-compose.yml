@@ -69,13 +69,14 @@ services:
       - "5555:5555"
     depends_on:
       - selenium-event-bus
+      - zeromq-server
     environment:
       JAVA_CLASSPATH: /mnt/*:/opt/selenium/*:.
       JAVA_OPTS: -Djavax.accessibility.assistive_technologies=
         -Dwebdriver.chrome.whitelistedIps
-      SE_EVENT_BUS_HOST: selenium-event-bus
-      SE_EVENT_BUS_PUBLISH_PORT: 4442
-      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_EVENT_BUS_HOST: zeromq-server # selenium-event-bus
+      SE_EVENT_BUS_PUBLISH_PORT: 5556 # 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 5556 # 4443
       SE_NODE_HOST: selenium-node-chrome
       SE_OPTS:
 
@@ -101,6 +102,7 @@ services:
     depends_on:
       - selenium-event-bus
 
+  # Simple zeroMQ server doesn't work with Selenium Event Bus.
   zeromq-server:
     build:
       context: ./zeromq-server/

@@ -17,9 +17,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating new socket: %s\n", err)
 	}
-	if err := s.Bind("tcp://*:5556"); err != nil {
+	addr := "tcp://*:5556"
+	log.Printf("Start zeromq server %s\n", addr)
+	if err := s.Bind(addr); err != nil {
 		log.Fatalf("Error binding to the server: %s\n", err)
 	}
+	log.Println("Server started...")
 
 	for {
 		// Wait for next request from client
