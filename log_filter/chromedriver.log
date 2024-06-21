@@ -1,0 +1,4 @@
+[1718993769.410][INFO]: Starting ChromeDriver 105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853}) on port 9515
+[1718993769.410][INFO]: Please see https://chromedriver.chromium.org/security-considerations for suggestions on keeping ChromeDriver safe.
+[1718993769.411][SEVERE]: bind() failed: Address already in use (48)
+[1718993769.411][INFO]: listen on IPv4 failed with error ERR_ADDRESS_IN_USE
