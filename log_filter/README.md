@@ -22,6 +22,17 @@ IPv4 port not available. Exiting...
 
 ### Create a session
 
+
+curl -X POST http://10.44.143.21:5555/wd/hub/session -d '{
+    "desiredCapabilities": {
+        "browserName": "chrome",
+        "version": "",
+        "platform": "ANY"
+    }
+}'
+
+curl -X DELETE http://10.44.143.21:5555/wd/hub/session/d43e4433b767c1dba1fbfab25d67f232
+
 ```
 $ curl -X POST http://localhost:9516/session -d '{
     "desiredCapabilities": {
