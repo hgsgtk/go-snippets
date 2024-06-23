@@ -2,6 +2,10 @@
 
 This programreads a log file and filters out the lines that contain a specific string.
 
+## Downloads
+
+- [Selenium Java server](https://www.selenium.dev/downloads/)
+
 ## Log sample
 
 ```
