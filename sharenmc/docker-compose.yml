@@ -5,14 +5,13 @@ services:
     command: sh -c "while true; do sleep 3600; done"
     stdin_open: true
     tty: true
-    ipc: shareable
+    pid: "host"
 
   accessor:
     image: busybox
-    command: sh -c "while true; do sleep 3600; done"
+    command: sh -c "while true; do sleep 4800; done"
     stdin_open: true
     tty: true
-    # ipc: "container:shared"
-    ipc: "service:shared"
+    pid: "host"
     depends_on:
       - shared
