@@ -57,6 +57,12 @@ There are a couple of options for short code generation. We'll use random alphan
 * NanoID - a tiny UUID
 * ULID - Universally Unique Lexicographically Sortable Identifier
 
+## Expiration
+
+* The expiration process is handled by a separate thread.
+* The expiration time is decided by the TTL (time-to-live) interval given by the CLI option or user's input.
+* Even a stored URL is accessed, the expiration time is not extended.
+
 ## System Components
 
 ### PoC Stage
@@ -86,14 +92,19 @@ CREATE TABLE url_shortener (
     id INT AUTO_INCREMENT PRIMARY KEY,
     short_code VARCHAR(6) UNIQUE,
     long_url VARCHAR(2048)
+    expired_at TIMESTAMP NULL
 );
 ```
 
 ## Later considerations
 
+* Redundant data volume: the data volume is doubled. It is not cost-effective.
 * Analytics: track number of hits per short URL
     * 301 (Permanent Redirect) vs 302 (Temporary Redirect)
-* Custom aliases (e.g. short.ly/autify-doc)
+* Custom aliases (e.g. short.ly/testing-doc)
+    * The custom alias can be implemented as another unique field in the table.
 * Do short URLs live forever? Would you consider adding TTL (time-to-live) to each mapping? How would expired entries be cleaned up in memory?
+    * Expiration can be implemented as a separate thread.
+    * Table-based approach with proper index is better than KV-based approach considering the expiration needs to search for expired entries. 
 * Could users generate malicious short URLs (e.g., phishing links)?
     * Would rate-limiting or domain allowlists help?

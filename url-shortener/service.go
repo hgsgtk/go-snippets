@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // ShortenerService handles URL shortening business logic
@@ -22,27 +23,34 @@ func NewShortenerService(baseURL string) *ShortenerService {
 	}
 }
 
-// Shorten creates a short URL from a long URL
-func (s *ShortenerService) Shorten(longURL string) (string, error) {
+// Shorten creates a short URL from a long URL with optional TTL
+func (s *ShortenerService) Shorten(longURL string, ttl *time.Duration) (string, *time.Time, error) {
 	// Validate URL
 	if err := s.validateURL(longURL); err != nil {
-		return "", err
+		return "", nil, err
 	}
 	
 	// Check if URL already exists
 	if existingCode, exists := s.storage.GetByLong(longURL); exists {
-		return s.baseURL + existingCode, nil
+		return s.baseURL + existingCode, nil, nil
 	}
 	
 	// Generate new short code
 	shortCode := s.generator.Generate()
 	
 	// Store the mapping
-	if err := s.storage.Store(shortCode, longURL); err != nil {
-		return "", err
+	if err := s.storage.Store(shortCode, longURL, ttl); err != nil {
+		return "", nil, err
 	}
 	
-	return s.baseURL + shortCode, nil
+	// Calculate expiration time if TTL was provided
+	var expiresAt *time.Time
+	if ttl != nil {
+		expiry := time.Now().Add(*ttl)
+		expiresAt = &expiry
+	}
+	
+	return s.baseURL + shortCode, expiresAt, nil
 }
 
 // GetOriginal retrieves the original URL from a short URL

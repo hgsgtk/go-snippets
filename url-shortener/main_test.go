@@ -36,7 +36,7 @@ func TestStorage(t *testing.T) {
 	longURL := "https://www.google.com"
 	shortCode := "abc123"
 	
-	storage.Store(shortCode, longURL)
+	storage.Store(shortCode, longURL, nil)
 	
 	// Test GetByShort
 	retrieved, exists := storage.GetByShort(shortCode)
@@ -82,7 +82,7 @@ func TestStorageConcurrency(t *testing.T) {
 			defer wg.Done()
 			shortCode := fmt.Sprintf("code%d", i)
 			longURL := fmt.Sprintf("https://example%d.com", i)
-			storage.Store(shortCode, longURL)
+			storage.Store(shortCode, longURL, nil)
 		}(i)
 	}
 	
@@ -142,7 +142,7 @@ func TestShortenerService(t *testing.T) {
 	
 	// Test creating new short URL
 	longURL := "https://www.google.com"
-	shortURL, err := service.Shorten(longURL)
+	shortURL, _, err := service.Shorten(longURL, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -151,7 +151,7 @@ func TestShortenerService(t *testing.T) {
 	}
 	
 	// Test duplicate URL returns same short code
-	shortURL2, err := service.Shorten(longURL)
+	shortURL2, _, err := service.Shorten(longURL, nil)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -274,7 +274,7 @@ func TestRedirectHandler(t *testing.T) {
 
 	// Create a short URL for testing
 	longURL := "https://www.google.com"
-	shortURL, _ := service.Shorten(longURL)
+	shortURL, _, _ := service.Shorten(longURL, nil)
 	shortCode := strings.TrimPrefix(shortURL, "https://short.url/")
 
 	tests := []struct {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Handler handles HTTP requests for the URL shortener
@@ -45,8 +46,15 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	// Convert TTL from seconds to duration
+	var ttl *time.Duration
+	if req.TTL != nil {
+		duration := time.Duration(*req.TTL) * time.Second
+		ttl = &duration
+	}
+	
 	// Create short URL
-	shortURL, err := h.service.Shorten(req.URL)
+	shortURL, expiresAt, err := h.service.Shorten(req.URL, ttl)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -55,6 +63,7 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	// Prepare response
 	response := ShortenResponse{
 		ShortURL: shortURL,
+		ExpiresAt: expiresAt,
 	}
 	
 	// Send response
