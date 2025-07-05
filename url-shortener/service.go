@@ -8,7 +8,7 @@ import (
 
 // ShortenerService handles URL shortening business logic
 type ShortenerService struct {
-	storage   *Storage
+	storage   StorageInterface
 	generator *Generator
 	baseURL   string
 }
@@ -16,7 +16,7 @@ type ShortenerService struct {
 // NewShortenerService creates a new shortener service
 func NewShortenerService(baseURL string) *ShortenerService {
 	return &ShortenerService{
-		storage:   NewStorage(),
+		storage:   NewMemoryStorage(),
 		generator: NewGenerator(),
 		baseURL:   baseURL,
 	}
@@ -38,7 +38,9 @@ func (s *ShortenerService) Shorten(longURL string) (string, error) {
 	shortCode := s.generator.Generate()
 	
 	// Store the mapping
-	s.storage.Store(shortCode, longURL)
+	if err := s.storage.Store(shortCode, longURL); err != nil {
+		return "", err
+	}
 	
 	return s.baseURL + shortCode, nil
 }

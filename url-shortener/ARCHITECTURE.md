@@ -28,6 +28,7 @@
             * Status code: 302
             * Redirect to the original long URL.          
 * If the same long URL is submitted again, the service should return the existing short code instead of creating a new one.
+* The length of the URL is limited to 2048 characters.
 
 ## Short code generation
 
@@ -58,16 +59,41 @@ There are a couple of options for short code generation. We'll use random alphan
 
 ## System Components
 
-### In-memory key-value database
+### PoC Stage
+
+In the PoC stage, we'll use a single server that stores all the data in memory.
+
+#### In-memory key-value database
 
 We assume the data is stored in a in-memory key-vale database first. We'll maintain two KV databases:
 
 1. short_code -> long_url
 2. long_url -> short_code
 
-### API Server
+### Production Stage
 
+We'll consider the following considerations:
+
+* Data persistence - in-memory is not enough.
+* Code generation must be tolerant in distributed environment.
+
+#### MySQL database
+
+The MySQL database has the one table that stores the short code and the corresponding long URL.
+
+```sql
+CREATE TABLE url_shortener (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    short_code VARCHAR(6) UNIQUE,
+    long_url VARCHAR(2048)
+);
+```
 
 ## Later considerations
 
-* 301 (Permanent Redirect) vs 302 (Temporary Redirect)
+* Analytics: track number of hits per short URL
+    * 301 (Permanent Redirect) vs 302 (Temporary Redirect)
+* Custom aliases (e.g. short.ly/autify-doc)
+* Do short URLs live forever? Would you consider adding TTL (time-to-live) to each mapping? How would expired entries be cleaned up in memory?
+* Could users generate malicious short URLs (e.g., phishing links)?
+    * Would rate-limiting or domain allowlists help?

@@ -39,6 +39,12 @@ func (h *Handler) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	// Validate URL length (max 2048 characters)
+	if len(req.URL) > 2048 {
+		http.Error(w, "URL length must be less than 2048 characters", http.StatusBadRequest)
+		return
+	}
+	
 	// Create short URL
 	shortURL, err := h.service.Shorten(req.URL)
 	if err != nil {

@@ -13,10 +13,24 @@ import (
 
 // Test data models are now defined in model.go
 
+// generateLongURL creates a URL with the specified length for testing
+func generateLongURL(length int) string {
+	baseURL := "https://example.com/"
+	remainingLength := length - len(baseURL)
+	
+	// Fill the remaining length with 'a' characters
+	fill := make([]byte, remainingLength)
+	for i := range fill {
+		fill[i] = 'a'
+	}
+	
+	return baseURL + string(fill)
+}
+
 // Test storage functionality
 func TestStorage(t *testing.T) {
 	t.Parallel()
-	storage := NewStorage()
+	storage := NewMemoryStorage()
 
 	// Test storing and retrieving
 	longURL := "https://www.google.com"
@@ -58,7 +72,7 @@ func TestStorage(t *testing.T) {
 // Test concurrent access to storage
 func TestStorageConcurrency(t *testing.T) {
 	t.Parallel()
-	storage := NewStorage()
+	storage := NewMemoryStorage()
 	var wg sync.WaitGroup
 	
 	// Test concurrent writes
@@ -199,6 +213,27 @@ func TestShortenHandler(t *testing.T) {
 			requestBody: ShortenRequest{URL: ""},
 			expectedStatus: http.StatusBadRequest,
 			validateResponse: func(t *testing.T, w *httptest.ResponseRecorder) {},
+		},
+		{
+			name: "URL too long",
+			requestBody: ShortenRequest{URL: generateLongURL(2049)},
+			expectedStatus: http.StatusBadRequest,
+			validateResponse: func(t *testing.T, w *httptest.ResponseRecorder) {},
+		},
+		{
+			name: "URL exactly at limit",
+			requestBody: ShortenRequest{URL: generateLongURL(2048)},
+			expectedStatus: http.StatusCreated,
+			validateResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
+				var response ShortenResponse
+				err := json.Unmarshal(w.Body.Bytes(), &response)
+				if err != nil {
+					t.Fatalf("Failed to unmarshal response: %v", err)
+				}
+				if response.ShortURL == "" {
+					t.Fatal("Expected non-empty short URL in response")
+				}
+			},
 		},
 	}
 
