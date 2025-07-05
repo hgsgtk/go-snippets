@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"sync"
 )
 
@@ -9,16 +10,16 @@ const (
 	codeLength  = 6
 )
 
-// Generator creates unique short codes using base62 encoding
+// Generator creates unique short codes using random base62 strings
 type Generator struct {
-	counter int64
-	mutex   sync.Mutex
+	usedCodes map[string]bool
+	mutex     sync.RWMutex
 }
 
 // NewGenerator creates a new generator instance
 func NewGenerator() *Generator {
 	return &Generator{
-		counter: 0,
+		usedCodes: make(map[string]bool),
 	}
 }
 
@@ -27,27 +28,27 @@ func (g *Generator) Generate() string {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	
-	g.counter++
-	return g.encodeBase62(g.counter)
+	// Generate random codes until we find an unused one
+	for {
+		code := g.generateRandomCode()
+		if !g.usedCodes[code] {
+			g.usedCodes[code] = true
+			return code
+		}
+	}
 }
 
-// encodeBase62 converts a number to base62 string
-func (g *Generator) encodeBase62(num int64) string {
-	if num == 0 {
-		return string(base62Chars[0])
-	}
+// generateRandomCode creates a random 6-character base62 string
+func (g *Generator) generateRandomCode() string {
+	// Generate random bytes
+	bytes := make([]byte, codeLength)
+	rand.Read(bytes)
 	
+	// Convert to base62 string
 	var result string
-	base := int64(len(base62Chars))
-	
-	for num > 0 {
-		result = string(base62Chars[num%base]) + result
-		num /= base
-	}
-	
-	// Pad with leading zeros to ensure 6 characters
-	for len(result) < codeLength {
-		result = string(base62Chars[0]) + result
+	for _, b := range bytes {
+		index := int(b) % len(base62Chars)
+		result += string(base62Chars[index])
 	}
 	
 	return result

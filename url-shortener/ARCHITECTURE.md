@@ -29,6 +29,33 @@
             * Redirect to the original long URL.          
 * If the same long URL is submitted again, the service should return the existing short code instead of creating a new one.
 
+## Short code generation
+
+There are a couple of options for short code generation. We'll use random alphanumeric string (Base62) for now.
+
+* Auto-incrementing counter - Uses a counter to generate unique numbers that are encoded into 6-character strings using digits 0-9, A-Z, and a-z
+    * e.g., 000001, 000002
+    * Pros: Extremely simple to implement
+    * Cons:
+        * The service scale is guessed easily.
+* Hashing with Base62 encoding
+    * e.g., MD5, SHA-1, SHA-256, SHA-512 -> Base62 encoding -> 6-character string
+    * Pros:
+        * Same URL will always generate the same short code.
+    * Cons:
+        * Collision risk
+* Random alphanumeric string (Base62)
+    * e.g., 123456, 789012
+    * Pros:
+        * Simple
+    * Cons:
+        * Checking for uniqueness
+* Timestamp-based string
+    * Epoc + random string
+* UUID - Universally Unique Identifier
+* NanoID - a tiny UUID
+* ULID - Universally Unique Lexicographically Sortable Identifier
+
 ## System Components
 
 ### In-memory key-value database
