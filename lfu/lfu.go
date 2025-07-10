@@ -98,6 +98,11 @@ func (c *LFUCache) incrementFrequency(key int) {
 	element := c.freqMap[newFreq].PushBack(key)
 	c.keyNodes[key] = element
 	c.nonEmptyFreqs[newFreq] = true
+	
+	// Update minFreq if needed (after adding the new frequency)
+	if c.minFreq == 0 || newFreq < c.minFreq {
+		c.minFreq = newFreq
+	}
 }
 
 // updateMinFreq finds the next minimum frequency in O(1) average time
@@ -134,4 +139,27 @@ func (c *LFUCache) evictLFU() {
 		// Find the next minimum frequency
 		c.updateMinFreq()
 	}
+}
+
+// Debug methods for testing
+func (c *LFUCache) GetCacheSize() int {
+	return len(c.cache)
+}
+
+func (c *LFUCache) GetCapacity() int {
+	return c.capacity
+}
+
+func (c *LFUCache) GetValue(key int) (int, bool) {
+	val, exists := c.cache[key]
+	return val, exists
+}
+
+func (c *LFUCache) GetFrequency(key int) (int, bool) {
+	freq, exists := c.freq[key]
+	return freq, exists
+}
+
+func (c *LFUCache) GetMinFreq() int {
+	return c.minFreq
 }

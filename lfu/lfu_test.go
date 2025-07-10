@@ -145,6 +145,34 @@ func TestLFUCache_Sequence(t *testing.T) {
 	}
 }
 
+func TestLFUCache_Sequence2(t *testing.T) {
+	c := lfu.NewLFUCache(1)
+	
+	// Test sequence: ["LFUCache","put","get","put","get","get"]
+	// [[1],[2,1],[2],[3,2],[2],[3]]
+	
+	// put(2,1)
+	c.Put(2, 1)
+	
+	// get(2) - should return 1
+	if val := c.Get(2); val != 1 {
+		t.Errorf("Expected Get(2) to return 1, got %d", val)
+	}
+	
+	// put(3,2) - should evict key 2 (capacity is 1)
+	c.Put(3, 2)
+	
+	// get(2) - should return -1 (evicted)
+	if val := c.Get(2); val != -1 {
+		t.Errorf("Expected Get(2) to return -1 (evicted), got %d", val)
+	}
+	
+	// get(3) - should return 2
+	if val := c.Get(3); val != 2 {
+		t.Errorf("Expected Get(3) to return 2, got %d", val)
+	}
+}
+
 func BenchmarkLFUCache_Get(b *testing.B) {
 	c := lfu.NewLFUCache(1000)
 	
