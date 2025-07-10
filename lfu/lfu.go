@@ -7,7 +7,9 @@ type LFUCache struct {
 	cache    map[int]int        // key -> value
 	freq     map[int]int        // key -> frequency count
 	freqMap  map[int]*list.List // frequency -> list of keys (LRU order)
+	keyNodes map[int]*list.Element // key -> list element for O(1) removal
 	minFreq  int                // minimum frequency in the cache
+	nonEmptyFreqs map[int]bool  // track non-empty frequency levels
 }
 
 func NewLFUCache(capacity int) *LFUCache {
@@ -16,7 +18,9 @@ func NewLFUCache(capacity int) *LFUCache {
 		cache:    make(map[int]int),
 		freq:     make(map[int]int),
 		freqMap:  make(map[int]*list.List),
+		keyNodes: make(map[int]*list.Element),
 		minFreq:  0,
+		nonEmptyFreqs: make(map[int]bool),
 	}
 }
 
@@ -41,7 +45,9 @@ func (c *LFUCache) Put(key int, value int) {
 	if c.freqMap[1] == nil {
 		c.freqMap[1] = list.New()
 	}
-	c.freqMap[1].PushBack(key)
+	element := c.freqMap[1].PushBack(key)
+	c.keyNodes[key] = element
+	c.nonEmptyFreqs[1] = true
 	
 	// Update minimum frequency
 	c.minFreq = 1
@@ -63,21 +69,20 @@ func (c *LFUCache) Get(key int) int {
 func (c *LFUCache) incrementFrequency(key int) {
 	freq := c.freq[key]
 	
-	// Remove from current frequency list
+	// Remove from current frequency list using O(1) removal
 	if freqList := c.freqMap[freq]; freqList != nil {
-		for e := freqList.Front(); e != nil; e = e.Next() {
-			if e.Value.(int) == key {
-				freqList.Remove(e)
-				break
-			}
+		if element, exists := c.keyNodes[key]; exists {
+			freqList.Remove(element)
+			delete(c.keyNodes, key)
 		}
 		
 		// If this frequency list is now empty, remove it
 		if freqList.Len() == 0 {
 			delete(c.freqMap, freq)
+			delete(c.nonEmptyFreqs, freq)
 			// If this was the minimum frequency, update minFreq
 			if freq == c.minFreq {
-				c.minFreq++
+				c.updateMinFreq()
 			}
 		}
 	}
@@ -90,7 +95,20 @@ func (c *LFUCache) incrementFrequency(key int) {
 	if c.freqMap[newFreq] == nil {
 		c.freqMap[newFreq] = list.New()
 	}
-	c.freqMap[newFreq].PushBack(key)
+	element := c.freqMap[newFreq].PushBack(key)
+	c.keyNodes[key] = element
+	c.nonEmptyFreqs[newFreq] = true
+}
+
+// updateMinFreq finds the next minimum frequency in O(1) average time
+func (c *LFUCache) updateMinFreq() {
+	// Find the next minimum frequency from non-empty frequencies
+	c.minFreq = 0
+	for freq := range c.nonEmptyFreqs {
+		if c.minFreq == 0 || freq < c.minFreq {
+			c.minFreq = freq
+		}
+	}
 }
 
 // evictLFU removes the least frequently used item from the cache
@@ -103,6 +121,7 @@ func (c *LFUCache) evictLFU() {
 	lruItem := c.freqMap[c.minFreq].Front()
 	keyToEvict := lruItem.Value.(int)
 	c.freqMap[c.minFreq].Remove(lruItem)
+	delete(c.keyNodes, keyToEvict)
 	
 	// Remove from cache and frequency maps
 	delete(c.cache, keyToEvict)
@@ -111,10 +130,8 @@ func (c *LFUCache) evictLFU() {
 	// If this frequency list is now empty, remove it and update minFreq
 	if c.freqMap[c.minFreq].Len() == 0 {
 		delete(c.freqMap, c.minFreq)
+		delete(c.nonEmptyFreqs, c.minFreq)
 		// Find the next minimum frequency
-		c.minFreq++
-		for c.freqMap[c.minFreq] == nil || c.freqMap[c.minFreq].Len() == 0 {
-			c.minFreq++
-		}
+		c.updateMinFreq()
 	}
 }

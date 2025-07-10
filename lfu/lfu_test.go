@@ -95,3 +95,93 @@ func TestLFUCache_LRUTieBreak(t *testing.T) {
 		t.Errorf("Expected value 3, got %d", c.Get(3))
 	}
 }	
+
+func TestLFUCache_Sequence(t *testing.T) {
+	c := lfu.NewLFUCache(2)
+	
+	// Test sequence: ["LFUCache","put","put","get","put","get","get","put","get","get","get"]
+	// [[2],[1,1],[2,2],[1],[3,3],[2],[3],[4,4],[1],[3],[4]]
+	
+	// put(1,1)
+	c.Put(1, 1)
+	
+	// put(2,2)
+	c.Put(2, 2)
+	
+	// get(1) - should return 1
+	if val := c.Get(1); val != 1 {
+		t.Errorf("Expected Get(1) to return 1, got %d", val)
+	}
+	
+	// put(3,3) - should evict key 2 (key 1 has higher frequency now)
+	c.Put(3, 3)
+	
+	// get(2) - should return -1 (evicted)
+	if val := c.Get(2); val != -1 {
+		t.Errorf("Expected Get(2) to return -1 (evicted), got %d", val)
+	}
+	
+	// get(3) - should return 3
+	if val := c.Get(3); val != 3 {
+		t.Errorf("Expected Get(3) to return 3, got %d", val)
+	}
+	
+	// put(4,4) - should evict key 1 (key 3 has higher frequency now)
+	c.Put(4, 4)
+	
+	// get(1) - should return -1 (evicted)
+	if val := c.Get(1); val != -1 {
+		t.Errorf("Expected Get(1) to return -1 (evicted), got %d", val)
+	}
+	
+	// get(3) - should return 3
+	if val := c.Get(3); val != 3 {
+		t.Errorf("Expected Get(3) to return 3, got %d", val)
+	}
+	
+	// get(4) - should return 4
+	if val := c.Get(4); val != 4 {
+		t.Errorf("Expected Get(4) to return 4, got %d", val)
+	}
+}
+
+func BenchmarkLFUCache_Get(b *testing.B) {
+	c := lfu.NewLFUCache(1000)
+	
+	// Pre-populate cache
+	for i := 0; i < 1000; i++ {
+		c.Put(i, i*2)
+	}
+	
+	// Access keys multiple times to create different frequencies
+	for i := 0; i < 1000; i++ {
+		c.Get(i % 100) // Some keys will be accessed more frequently
+	}
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		c.Get(i % 1000)
+	}
+}
+
+func BenchmarkLFUCache_Put(b *testing.B) {
+	c := lfu.NewLFUCache(1000)
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		c.Put(i%1000, i)
+	}
+}
+
+func BenchmarkLFUCache_Mixed(b *testing.B) {
+	c := lfu.NewLFUCache(1000)
+	
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if i%3 == 0 {
+			c.Put(i%1000, i)
+		} else {
+			c.Get(i % 1000)
+		}
+	}
+}	
