@@ -16,9 +16,10 @@ alwaysApply: false
 - Always check and handle errors explicitly
 - Use `fmt.Errorf` with `%w` verb for error wrapping
 - Return meaningful error messages that help users understand what went wrong
-- Avoid panic() in production code - use proper error handling instead
+- Avoid panic() and log.Fatal in production code - use proper error handling instead
 
 ## Testing
+- Use separate test packages (package _test) for unit tests to help ensure exported functions are properly designed and accessible
 - Write comprehensive unit tests for all exported functions
 - Use table-driven tests for multiple test cases
 - Test both success and failure scenarios
