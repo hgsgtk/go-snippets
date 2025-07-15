@@ -1,0 +1,58 @@
+---
+description: Go coding standards for project organization, error handling, testing, and module management
+globs: ["**/*.go", "go.mod"]
+alwaysApply: false
+---
+
+# Go Coding Standards
+
+## Code Organization
+- Use flat package style with package names that match the folder name or follow Go package naming best practices
+- Place functionality files with package name matching the folder name at the same level as go.mod file (avoid internal/, pkg/ or any other directories)
+- Place main.go (main package) in cmd/(package name) folder structure
+- Keep main.go simple - only initialization and high-level orchestration
+
+## Error Handling
+- Always check and handle errors explicitly
+- Use `fmt.Errorf` with `%w` verb for error wrapping
+- Use `errors.New` for simple error messages without any arguments
+- Return meaningful error messages that help users understand what went wrong
+- Error messages should not be capitalized
+- Avoid panic() and log.Fatal in production code - use proper error handling instead
+
+## Testing
+- Use separate test packages (package _test) for unit tests to help ensure exported functions are properly designed and accessible
+- Write comprehensive unit tests for all exported functions
+- Use table-driven tests for multiple test cases
+- Test both success and failure scenarios
+- Mock dependencies when testing isolated components
+- No need to write tests for constructor functions or type assertions
+
+## Benchmarking
+- Avoid writing benchmarks unless the user specifically requests them
+- Focus on implementing requested functionality without automatically adding benchmark files
+- Only create benchmarks when explicitly asked for performance testing or optimization analysis
+
+## Package Preferences
+- Prefer standard library packages over third-party alternatives when available
+- Use well-established, widely-adopted packages for functionality not in the standard library
+- Avoid reinventing functionality that already exists in the standard library
+- Consider maintenance burden and community support when choosing external packages
+
+## API Usage
+- Avoid using deprecated APIs and functions
+- Replace deprecated APIs with their recommended alternatives
+- Check for deprecation warnings and update code accordingly
+- Use the latest stable versions of packages and APIs when possible
+
+## CLI Implementation
+- Use native help functionality provided by the CLI framework
+- Prefer standard library `flag` package for simple CLI applications
+- Use established frameworks like cobra or urfave/cli only when standard library is insufficient
+- Leverage built-in help systems rather than implementing custom help functionality
+
+## Module Management
+- Create go.mod with the latest stable Go version available
+- Use `go mod init` with appropriate module name following Go module naming conventions
+- Keep dependencies up to date and use specific versions rather than latest
+- Run `go mod tidy` to clean up unused dependencies
